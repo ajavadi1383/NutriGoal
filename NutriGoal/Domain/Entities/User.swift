@@ -19,6 +19,8 @@ struct User: Identifiable, Codable {
     var weightKg: Double
     var targetWeightKg: Double?
     var activityLevel: ActivityLevel
+    var age: Int
+    var gender: Gender
     
     // Sleep Preferences
     var bedtime: String // Format: "HH:mm"
@@ -47,6 +49,8 @@ struct User: Identifiable, Codable {
         activityLevel: ActivityLevel,
         bedtime: String,
         sleepHours: Double,
+        age: Int,
+        gender: Gender,
         subscriptionStatus: SubscriptionStatus = .inactive
     ) {
         self.id = id
@@ -60,6 +64,8 @@ struct User: Identifiable, Codable {
         self.activityLevel = activityLevel
         self.bedtime = bedtime
         self.sleepHours = sleepHours
+        self.age = age
+        self.gender = gender
         self.subscriptionStatus = subscriptionStatus
     }
 }
@@ -170,12 +176,20 @@ struct MacroTargets: Codable {
 extension User {
     private func calculateCalorieRange() -> CalorieRange {
         // Calculate BMR using Mifflin-St Jeor Equation
-        // This is a simplified calculation - in production, you'd want more sophisticated logic
         let bmr: Double
         
-        // Assuming average gender split for simplicity
-        // In production, you'd collect gender during onboarding
-        bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * 25) + 5 // Assuming age 25 for now
+        // BMR calculation based on gender
+        switch gender {
+        case .male:
+            bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * Double(age)) + 5
+        case .female:
+            bmr = (10 * weightKg) + (6.25 * heightCm) - (5 * Double(age)) - 161
+        case .other:
+            // Use average of male/female formulas
+            let maleBMR = (10 * weightKg) + (6.25 * heightCm) - (5 * Double(age)) + 5
+            let femaleBMR = (10 * weightKg) + (6.25 * heightCm) - (5 * Double(age)) - 161
+            bmr = (maleBMR + femaleBMR) / 2
+        }
         
         let tdee = bmr * activityLevel.multiplier
         

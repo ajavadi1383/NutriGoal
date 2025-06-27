@@ -11,6 +11,8 @@ struct RootView: View {
     @EnvironmentObject var diContainer: DIContainer
     @State private var authState: AuthState = .loading
     @State private var isFirstLaunch = true
+    @State private var needsOnboarding = false
+    @State private var isOnboardingComplete = false
     
     var body: some View {
         Group {
@@ -19,12 +21,27 @@ struct RootView: View {
                 LoadingView()
             case .unauthenticated:
                 if isFirstLaunch {
-                    WelcomeView()
+                    WelcomeView(onGetStarted: {
+                        // Navigate to onboarding
+                        needsOnboarding = true
+                    })
                 } else {
                     LoginView()
                 }
             case .authenticated(let user):
                 MainTabView(user: user)
+            }
+        }
+        .fullScreenCover(isPresented: $needsOnboarding) {
+            OnboardingFlow(isOnboardingComplete: $isOnboardingComplete)
+        }
+        .onChange(of: isOnboardingComplete) { completed in
+            if completed {
+                needsOnboarding = false
+                // Refresh auth state to load the new user
+                Task {
+                    await checkAuthenticationState()
+                }
             }
         }
         .task {
@@ -80,6 +97,8 @@ struct LoadingView: View {
 // MARK: - Welcome View
 
 struct WelcomeView: View {
+    let onGetStarted: () -> Void
+    
     var body: some View {
         ZStack {
             LinearGradient(
@@ -131,7 +150,7 @@ struct WelcomeView: View {
                 
                 VStack(spacing: 12) {
                     Button(action: {
-                        // Navigate to sign up
+                        onGetStarted()
                     }) {
                         Text("Get Started")
                             .font(.headline)

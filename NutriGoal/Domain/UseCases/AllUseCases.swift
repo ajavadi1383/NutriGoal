@@ -162,17 +162,10 @@ final class AICoachUseCase: AICoachUseCaseProtocol {
     
     func sendMessage(_ message: String) async throws -> String {
         // TODO: Implement actual chat logic with conversation history
-        let mockUser = User(
-            email: "mock@example.com",
-            goal: .loseWeight,
-            tone: .supportive,
-            heightCm: 175,
-            weightKg: 70,
-            activityLevel: .moderatelyActive,
-            bedtime: "23:00",
-            sleepHours: 7.5
-        )
-        return try await aiService.getChatResponse(user: mockUser, message: message, conversationHistory: [])
+        guard let user = try await userRepository.getCurrentUser() else {
+            throw NSError(domain: "AICoachUseCase", code: 1, userInfo: [NSLocalizedDescriptionKey: "No user found"])
+        }
+        return try await aiService.getChatResponse(user: user, message: message, conversationHistory: [])
     }
     
     func getConversationHistory() async throws -> [ChatMessage] {
