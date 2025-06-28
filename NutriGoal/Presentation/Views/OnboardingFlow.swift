@@ -24,10 +24,25 @@ struct OnboardingFlow: View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
                 // Progress Bar
-                ProgressView(value: viewModel.progressPercent)
-                    .progressViewStyle(LinearProgressViewStyle(tint: .blue))
-                    .padding(.horizontal, 20)
-                    .padding(.top, 10)
+                VStack(spacing: 8) {
+                    HStack {
+                        Text("Step \(OnboardingStep.allCases.firstIndex(of: viewModel.currentStep)! + 1) of \(OnboardingStep.allCases.count)")
+                            .font(.caption)
+                            .foregroundColor(.white.opacity(0.8))
+                        Spacer()
+                        Text("\(Int(viewModel.progressPercent * 100))%")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(.white)
+                    }
+                    
+                    ProgressView(value: viewModel.progressPercent)
+                        .progressViewStyle(LinearProgressViewStyle(tint: .white))
+                        .background(Color.white.opacity(0.3))
+                        .cornerRadius(4)
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
                 
                 // Main Content
                 TabView(selection: $viewModel.currentStep) {
@@ -47,7 +62,10 @@ struct OnboardingFlow: View {
         }
         .background(
             LinearGradient(
-                gradient: Gradient(colors: [Color.blue.opacity(0.1), Color.purple.opacity(0.1)]),
+                gradient: Gradient(colors: [
+                    Color(red: 0.2, green: 0.4, blue: 1.0),
+                    Color(red: 0.4, green: 0.2, blue: 0.9)
+                ]),
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
@@ -97,21 +115,22 @@ struct OnboardingFlow: View {
     }
     
     private var navigationButtons: some View {
-        HStack {
+        HStack(spacing: 16) {
             // Back Button
             if viewModel.currentStep != .welcome {
                 Button("Back") {
                     viewModel.previousStep()
                 }
                 .font(.headline)
-                .foregroundColor(.blue)
-                .padding(.vertical, 12)
-                .padding(.horizontal, 24)
-                .background(Color.white)
-                .cornerRadius(8)
+                .fontWeight(.medium)
+                .foregroundColor(.white)
+                .padding(.vertical, 16)
+                .padding(.horizontal, 32)
+                .background(Color.white.opacity(0.2))
+                .cornerRadius(12)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.blue, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.white.opacity(0.3), lineWidth: 1)
                 )
             }
             
@@ -128,16 +147,20 @@ struct OnboardingFlow: View {
                 }
             }
             .font(.headline)
-            .foregroundColor(.white)
-            .padding(.vertical, 12)
-            .padding(.horizontal, 24)
-            .background(viewModel.canProceed() ? Color.blue : Color.gray)
-            .cornerRadius(8)
+            .fontWeight(.semibold)
+            .foregroundColor(viewModel.canProceed() ? Color(red: 0.2, green: 0.4, blue: 1.0) : .gray)
+            .padding(.vertical, 16)
+            .padding(.horizontal, 32)
+            .background(viewModel.canProceed() ? Color.white : Color.white.opacity(0.5))
+            .cornerRadius(12)
+            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
             .disabled(!viewModel.canProceed() || viewModel.isLoading)
+            .scaleEffect(viewModel.canProceed() ? 1.0 : 0.95)
+            .animation(.easeInOut(duration: 0.2), value: viewModel.canProceed())
             .overlay {
                 if viewModel.isLoading {
                     ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .progressViewStyle(CircularProgressViewStyle(tint: Color(red: 0.2, green: 0.4, blue: 1.0)))
                         .scaleEffect(0.8)
                 }
             }

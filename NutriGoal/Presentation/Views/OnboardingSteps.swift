@@ -21,22 +21,27 @@ struct OnboardingPersonalInfoView: View {
             VStack(spacing: 30) {
                 headerView(title: "About You", subtitle: "Help us calculate your personalized goals")
                 
-                VStack(spacing: 20) {
+                VStack(spacing: 25) {
                     // Age Input
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 12) {
                         Text("Age")
                             .font(.headline)
+                            .foregroundColor(.white)
                         TextField("Enter your age", text: $ageText)
                             .keyboardType(.numberPad)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding()
+                            .background(Color.white.opacity(0.9))
+                            .cornerRadius(12)
+                            .font(.body)
                     }
                     
                     // Gender Selection
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 12) {
                         Text("Gender")
                             .font(.headline)
+                            .foregroundColor(.white)
                         
-                        HStack(spacing: 12) {
+                        HStack(spacing: 8) {
                             ForEach(Gender.allCases, id: \.self) { gender in
                                 Button(action: {
                                     selectedGender = gender
@@ -44,14 +49,15 @@ struct OnboardingPersonalInfoView: View {
                                 }) {
                                     Text(gender.displayName)
                                         .font(.subheadline)
-                                        .foregroundColor(selectedGender == gender ? .white : .blue)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(selectedGender == gender ? .white : .white.opacity(0.8))
                                         .padding(.vertical, 12)
-                                        .padding(.horizontal, 20)
-                                        .background(selectedGender == gender ? Color.blue : Color.clear)
-                                        .cornerRadius(8)
+                                        .padding(.horizontal, 16)
+                                        .background(selectedGender == gender ? Color.white.opacity(0.3) : Color.white.opacity(0.1))
+                                        .cornerRadius(10)
                                         .overlay(
-                                            RoundedRectangle(cornerRadius: 8)
-                                                .stroke(Color.blue, lineWidth: 1)
+                                            RoundedRectangle(cornerRadius: 10)
+                                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
                                         )
                                 }
                             }
@@ -59,21 +65,29 @@ struct OnboardingPersonalInfoView: View {
                     }
                     
                     // Height Input
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 12) {
                         Text("Height (cm)")
                             .font(.headline)
+                            .foregroundColor(.white)
                         TextField("Enter your height", text: $heightText)
                             .keyboardType(.decimalPad)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding()
+                            .background(Color.white.opacity(0.9))
+                            .cornerRadius(12)
+                            .font(.body)
                     }
                     
                     // Weight Input
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: 12) {
                         Text("Current Weight (kg)")
                             .font(.headline)
+                            .foregroundColor(.white)
                         TextField("Enter your weight", text: $weightText)
                             .keyboardType(.decimalPad)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding()
+                            .background(Color.white.opacity(0.9))
+                            .cornerRadius(12)
+                            .font(.body)
                     }
                 }
                 .padding(.horizontal, 30)
@@ -157,32 +171,41 @@ struct GoalCard: View {
     
     var body: some View {
         Button(action: onTap) {
-            HStack {
+            HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(goal.displayName)
                         .font(.headline)
                         .fontWeight(.semibold)
+                        .foregroundColor(.primary)
                     
                     Text(goalDescription(for: goal))
                         .font(.subheadline)
                         .foregroundColor(.gray)
+                        .multilineTextAlignment(.leading)
                 }
                 
                 Spacer()
                 
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .font(.title2)
-                    .foregroundColor(isSelected ? .blue : .gray)
+                    .foregroundColor(isSelected ? Color(red: 0.2, green: 0.4, blue: 1.0) : .gray.opacity(0.6))
             }
-            .padding()
-            .background(Color.white)
-            .cornerRadius(12)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(isSelected ? Color.blue : Color.gray.opacity(0.3), lineWidth: 2)
+            .padding(20)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.white.opacity(0.95))
+                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
             )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(
+                        isSelected ? Color(red: 0.2, green: 0.4, blue: 1.0) : Color.clear,
+                        lineWidth: 2
+                    )
+            )
+            .scaleEffect(isSelected ? 1.02 : 1.0)
+            .animation(.easeInOut(duration: 0.2), value: isSelected)
         }
-        .foregroundColor(.primary)
     }
     
     private func goalDescription(for goal: Goal) -> String {
@@ -207,20 +230,33 @@ struct OnboardingTargetWeightView: View {
         VStack(spacing: 30) {
             headerView(title: "Target Weight", subtitle: "What's your goal weight?")
             
-            VStack(spacing: 20) {
+            VStack(spacing: 25) {
                 if let currentWeight = viewModel.onboardingData.weightKg {
-                    Text("Current Weight: \(currentWeight, specifier: "%.1f") kg")
-                        .font(.title3)
-                        .foregroundColor(.gray)
+                    VStack(spacing: 8) {
+                        Text("Current Weight")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.8))
+                        Text("\(currentWeight, specifier: "%.1f") kg")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.white)
+                    }
+                    .padding()
+                    .background(Color.white.opacity(0.15))
+                    .cornerRadius(12)
                 }
                 
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 12) {
                     Text("Target Weight (kg)")
                         .font(.headline)
+                        .foregroundColor(.white)
                     TextField("Enter your target weight", text: $targetWeightText)
                         .keyboardType(.decimalPad)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .padding()
+                        .background(Color.white.opacity(0.9))
+                        .cornerRadius(12)
                         .font(.title2)
+                        .fontWeight(.medium)
                 }
                 .padding(.horizontal, 30)
                 
@@ -228,9 +264,18 @@ struct OnboardingTargetWeightView: View {
                    let target = Double(targetWeightText) {
                     let difference = current - target
                     if difference > 0 {
-                        Text("Goal: Lose \(difference, specifier: "%.1f") kg")
-                            .font(.headline)
-                            .foregroundColor(.blue)
+                        VStack(spacing: 8) {
+                            Text("Weight Loss Goal")
+                                .font(.subheadline)
+                                .foregroundColor(.white.opacity(0.8))
+                            Text("Lose \(difference, specifier: "%.1f") kg")
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                        }
+                        .padding()
+                        .background(Color.white.opacity(0.15))
+                        .cornerRadius(12)
                     }
                 }
             }
@@ -291,17 +336,18 @@ struct ActivityLevelCard: View {
     
     var body: some View {
         Button(action: onTap) {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Text(level.displayName)
                         .font(.headline)
                         .fontWeight(.semibold)
+                        .foregroundColor(.primary)
                     
                     Spacer()
                     
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                         .font(.title3)
-                        .foregroundColor(isSelected ? .blue : .gray)
+                        .foregroundColor(isSelected ? Color(red: 0.2, green: 0.4, blue: 1.0) : .gray.opacity(0.6))
                 }
                 
                 Text(activityDescription(for: level))
@@ -309,15 +355,22 @@ struct ActivityLevelCard: View {
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.leading)
             }
-            .padding()
-            .background(Color.white)
-            .cornerRadius(12)
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(isSelected ? Color.blue : Color.gray.opacity(0.3), lineWidth: 2)
+            .padding(20)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color.white.opacity(0.95))
+                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
             )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(
+                        isSelected ? Color(red: 0.2, green: 0.4, blue: 1.0) : Color.clear,
+                        lineWidth: 2
+                    )
+            )
+            .scaleEffect(isSelected ? 1.02 : 1.0)
+            .animation(.easeInOut(duration: 0.2), value: isSelected)
         }
-        .foregroundColor(.primary)
     }
     
     private func activityDescription(for level: ActivityLevel) -> String {
@@ -352,27 +405,38 @@ struct OnboardingTimelineView: View {
                         selectedTimeline = timeline
                         viewModel.updateTimeline(timeline)
                     }) {
-                        HStack {
-                            VStack(alignment: .leading) {
+                        HStack(spacing: 16) {
+                            VStack(alignment: .leading, spacing: 8) {
                                 Text(timeline.displayName)
                                     .font(.headline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.primary)
                                 Text(timeline.description)
                                     .font(.subheadline)
                                     .foregroundColor(.gray)
+                                    .multilineTextAlignment(.leading)
                             }
                             Spacer()
                             Image(systemName: selectedTimeline == timeline ? "checkmark.circle.fill" : "circle")
-                                .foregroundColor(selectedTimeline == timeline ? .blue : .gray)
+                                .font(.title3)
+                                .foregroundColor(selectedTimeline == timeline ? Color(red: 0.2, green: 0.4, blue: 1.0) : .gray.opacity(0.6))
                         }
-                        .padding()
-                        .background(Color.white)
-                        .cornerRadius(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(selectedTimeline == timeline ? Color.blue : Color.gray.opacity(0.3), lineWidth: 2)
+                        .padding(20)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.white.opacity(0.95))
+                                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
                         )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(
+                                    selectedTimeline == timeline ? Color(red: 0.2, green: 0.4, blue: 1.0) : Color.clear,
+                                    lineWidth: 2
+                                )
+                        )
+                        .scaleEffect(selectedTimeline == timeline ? 1.02 : 1.0)
+                        .animation(.easeInOut(duration: 0.2), value: selectedTimeline)
                     }
-                    .foregroundColor(.primary)
                 }
             }
             .padding(.horizontal, 30)
@@ -397,19 +461,41 @@ struct OnboardingSleepView: View {
             headerView(title: "Sleep Schedule", subtitle: "When do you usually sleep?")
             
             VStack(spacing: 30) {
-                VStack {
+                VStack(spacing: 16) {
                     Text("Bedtime")
                         .font(.headline)
+                        .foregroundColor(.white)
+                    
                     DatePicker("Bedtime", selection: $selectedBedtime, displayedComponents: .hourAndMinute)
                         .datePickerStyle(WheelDatePickerStyle())
                         .labelsHidden()
+                        .padding()
+                        .background(Color.white.opacity(0.9))
+                        .cornerRadius(16)
                 }
                 
-                VStack {
+                VStack(spacing: 16) {
                     Text("Sleep Duration: \(sleepHours, specifier: "%.1f") hours")
                         .font(.headline)
-                    Slider(value: $sleepHours, in: 5...10, step: 0.5)
-                        .accentColor(.blue)
+                        .foregroundColor(.white)
+                    
+                    VStack(spacing: 12) {
+                        Slider(value: $sleepHours, in: 5...10, step: 0.5)
+                            .accentColor(Color(red: 0.2, green: 0.4, blue: 1.0))
+                        
+                        HStack {
+                            Text("5h")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.7))
+                            Spacer()
+                            Text("10h")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.7))
+                        }
+                    }
+                    .padding()
+                    .background(Color.white.opacity(0.15))
+                    .cornerRadius(16)
                 }
                 .padding(.horizontal, 30)
             }
@@ -460,27 +546,38 @@ struct OnboardingCoachingToneView: View {
                         selectedTone = tone
                         viewModel.updateTone(tone)
                     }) {
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: 12) {
                             HStack {
                                 Text(tone.displayName)
                                     .font(.headline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.primary)
                                 Spacer()
                                 Image(systemName: selectedTone == tone ? "checkmark.circle.fill" : "circle")
-                                    .foregroundColor(selectedTone == tone ? .blue : .gray)
+                                    .font(.title3)
+                                    .foregroundColor(selectedTone == tone ? Color(red: 0.2, green: 0.4, blue: 1.0) : .gray.opacity(0.6))
                             }
                             Text(toneDescription(for: tone))
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
+                                .multilineTextAlignment(.leading)
                         }
-                        .padding()
-                        .background(Color.white)
-                        .cornerRadius(12)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(selectedTone == tone ? Color.blue : Color.gray.opacity(0.3), lineWidth: 2)
+                        .padding(20)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.white.opacity(0.95))
+                                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
                         )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(
+                                    selectedTone == tone ? Color(red: 0.2, green: 0.4, blue: 1.0) : Color.clear,
+                                    lineWidth: 2
+                                )
+                        )
+                        .scaleEffect(selectedTone == tone ? 1.02 : 1.0)
+                        .animation(.easeInOut(duration: 0.2), value: selectedTone)
                     }
-                    .foregroundColor(.primary)
                 }
             }
             .padding(.horizontal, 30)
@@ -540,6 +637,8 @@ struct OnboardingSummaryView: View {
                 Text("🎉 Ready to start your journey!")
                     .font(.title2)
                     .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
                 
                 Spacer(minLength: 100)
             }
@@ -554,25 +653,25 @@ struct SummaryCard: View {
     
     var body: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text(title)
                     .font(.subheadline)
-                    .foregroundColor(.gray)
+                    .foregroundColor(.gray.opacity(0.8))
                 Text(value)
                     .font(.headline)
                     .fontWeight(.semibold)
+                    .foregroundColor(.primary)
                 Text(subtitle)
                     .font(.caption)
-                    .foregroundColor(.blue)
+                    .foregroundColor(Color(red: 0.2, green: 0.4, blue: 1.0))
             }
             Spacer()
         }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white.opacity(0.95))
+                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
         )
     }
 }
@@ -584,11 +683,12 @@ func headerView(title: String, subtitle: String) -> some View {
         Text(title)
             .font(.largeTitle)
             .fontWeight(.bold)
+            .foregroundColor(.white)
             .multilineTextAlignment(.center)
         
         Text(subtitle)
             .font(.title3)
-            .foregroundColor(.gray)
+            .foregroundColor(.white.opacity(0.9))
             .multilineTextAlignment(.center)
             .padding(.horizontal, 20)
     }
