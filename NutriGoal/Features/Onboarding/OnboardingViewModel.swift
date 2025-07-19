@@ -61,8 +61,8 @@ final class OnboardingViewModel: ObservableObject {
         UserDefaults.standard.set(true, forKey: "onboarded")
         print("✅ [OnboardingViewModel] Onboarding data saved locally")
         
-        // Navigate to home
-        router?.to(.home)
-        print("✅ [OnboardingViewModel] Navigating to home")
+        // Navigate to auth for sign-up/log-in
+        router?.to(.auth)
+        print("✅ [OnboardingViewModel] Navigating to auth for sign-up/log-in")
     }
 } 
