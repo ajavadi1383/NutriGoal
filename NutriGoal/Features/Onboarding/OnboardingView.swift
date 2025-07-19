@@ -2,6 +2,7 @@ import SwiftUI
 
 struct OnboardingView: View {
     @StateObject private var viewModel = OnboardingViewModel()
+    @EnvironmentObject var router: AppRouter
     
     var body: some View {
         VStack {
@@ -197,7 +198,7 @@ struct OnboardingView: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .onAppear {
-                viewModel.setupDependencies()
+                viewModel.setupDependencies(router: router)
             }
         }
     }

@@ -22,11 +22,11 @@ final class OnboardingViewModel: ObservableObject {
     @Published var lang = ""
     
     // MARK: - Setup Dependencies
-    func setupDependencies() {
+    func setupDependencies(router: AppRouter) {
         // TODO: Inject via Resolver
         self.authManager = FirebaseAuthManager()
         self.firebaseService = FirebaseServiceImpl()
-        // TODO: Get router from environment or injection
+        self.router = router
     }
     
     // MARK: - Navigation
