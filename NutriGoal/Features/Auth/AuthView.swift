@@ -66,7 +66,6 @@ struct AuthView: View {
                 if let errorMessage = viewModel.errorMessage {
                     Text(errorMessage)
                         .font(NGFont.bodyM)
-                        .foregroundColor(NGColor.error)
                         .multilineTextAlignment(.center)
                         .padding(.top, 8)
                 }
