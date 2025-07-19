@@ -43,6 +43,16 @@ struct HeroView: View {
                         await viewModel.startTapped()
                     }
                 }
+                .disabled(viewModel.isLoading)
+                .overlay(
+                    Group {
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .scaleEffect(0.8)
+                        }
+                    }
+                )
                 .padding(.horizontal, NGSize.spacing)
                 .padding(.bottom, NGSize.spacing * 2)
             }
