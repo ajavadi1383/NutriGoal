@@ -1,8 +1,8 @@
 import Foundation
-import FirebaseFirestoreSwift
+import FirebaseFirestore
 
 struct WeeklyReport: Codable, Identifiable {
-    @DocumentID var id: String?
+    var id: String?
     let week: String
     let summaryText: String
     let avgScore: Double

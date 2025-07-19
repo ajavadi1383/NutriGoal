@@ -1,8 +1,8 @@
 import Foundation
-import FirebaseFirestoreSwift
+import FirebaseFirestore
 
 struct Meal: Codable, Identifiable {
-    @DocumentID var id: String?
+    var id: String?
     let loggedAt: Date
     let source: String
     let name: String

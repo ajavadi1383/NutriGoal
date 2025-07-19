@@ -1,8 +1,8 @@
 import Foundation
-import FirebaseFirestoreSwift
+import FirebaseFirestore
 
 struct DayStats: Codable, Identifiable {
-    @DocumentID var id: String?
+    var id: String?
     let date: String
     let caloriesTotal: Int
     let proteinTotal: Int
