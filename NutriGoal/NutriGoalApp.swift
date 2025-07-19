@@ -72,7 +72,7 @@ struct HomeView: View {
                     .multilineTextAlignment(.center)
                 
                 Text("Your health journey starts here")
-                    .font(NGFont.body)
+                    .font(NGFont.bodyM)
                     .foregroundColor(.white.opacity(0.8))
                     .multilineTextAlignment(.center)
                 
