@@ -197,6 +197,7 @@ struct OnboardingView: View {
                 .tag(8)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
+            .environmentObject(viewModel)
             .onAppear {
                 viewModel.setupDependencies(router: router)
             }
@@ -251,7 +252,6 @@ struct OnboardingPageView<Content: View>: View {
             
             Spacer()
         }
-        .environmentObject(viewModel)
     }
 }
 
