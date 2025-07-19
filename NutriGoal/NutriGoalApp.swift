@@ -6,30 +6,55 @@
 //
 
 import SwiftUI
-import SwiftData
+import FirebaseCore
 
 @main
 struct NutriGoalApp: App {
-    @StateObject private var diContainer = DIContainer.shared
     
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
+    init() {
+        FirebaseApp.configure()
+    }
     
     var body: some Scene {
         WindowGroup {
-            RootView()
-                .environmentObject(diContainer)
-                .modelContainer(sharedModelContainer)
+            ContentView()
+        }
+    }
+}
+
+struct ContentView: View {
+    @StateObject private var authManager = FirebaseAuthManager()
+    @State private var showOnboarding = false
+    
+    var body: some View {
+        Group {
+            if authManager.currentUID != nil {
+                if showOnboarding {
+                    OnboardingView(authManager: authManager) {
+                        showOnboarding = false
+                    }
+                } else {
+                    // TODO: Main app view after onboarding
+                    Text("Welcome to NutriGoal!")
+                        .font(.largeTitle)
+                }
+            } else {
+                // TODO: Landing/welcome screen
+                Button("Get Started") {
+                    Task {
+                        try? await authManager.signInAnonymously()
+                        showOnboarding = true
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+            }
+        }
+        .task {
+            for await user in authManager.authStateStream {
+                if user != nil && !showOnboarding {
+                    showOnboarding = true
+                }
+            }
         }
     }
 }
