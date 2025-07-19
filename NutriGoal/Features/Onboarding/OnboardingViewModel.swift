@@ -38,40 +38,31 @@ final class OnboardingViewModel: ObservableObject {
     
     // MARK: - Finish Onboarding
     func finish() async {
-        do {
-            guard let uid = authManager?.currentUID else {
-                print("❌ No authenticated user")
-                return
-            }
-            
-            // Build UserProfile
-            let profile = UserProfile(
-                id: uid,
-                email: "anonymous@nutrigoal.app", // TODO: Get actual email when auth is expanded
-                birthDate: birthDate,
-                sex: sex,
-                heightCm: heightCm,
-                weightKg: weightKg,
-                activityLevel: activityLevel,
-                target: target,
-                weeklyPaceKg: weeklyPaceKg,
-                goalDate: Calendar.current.date(byAdding: .month, value: 3, to: Date.now) ?? Date.now,
-                dietType: dietType,
-                lang: lang,
-                createdAt: Date.now
-            )
-            
-            // Save to Firebase
-            try await firebaseService?.save(profile: profile)
-            
-            // Mark as onboarded
-            UserDefaults.standard.set(true, forKey: "onboarded")
-            
-            // Navigate to home
-            router?.to(.home)
-            
-        } catch {
-            print("❌ [\(#function)] \(error.localizedDescription)")
-        }
+        print("🎯 [OnboardingViewModel] finish() called")
+        
+        // Save onboarding data locally (will sync to Firebase later when user authenticates)
+        let onboardingData: [String: Any] = [
+            "birthDate": birthDate,
+            "sex": sex,
+            "heightCm": heightCm,
+            "weightKg": weightKg,
+            "activityLevel": activityLevel,
+            "target": target,
+            "weeklyPaceKg": weeklyPaceKg,
+            "dietType": dietType,
+            "lang": lang,
+            "createdAt": Date.now
+        ]
+        
+        // Save to UserDefaults for now
+        UserDefaults.standard.set(onboardingData, forKey: "onboardingData")
+        
+        // Mark as onboarded
+        UserDefaults.standard.set(true, forKey: "onboarded")
+        print("✅ [OnboardingViewModel] Onboarding data saved locally")
+        
+        // Navigate to home
+        router?.to(.home)
+        print("✅ [OnboardingViewModel] Navigating to home")
     }
 } 
