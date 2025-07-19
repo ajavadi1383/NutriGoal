@@ -121,4 +121,22 @@ extension AppleSignInHelper: ASAuthorizationControllerDelegate {
         print("❌ [AppleSignInHelper] Sign in with Apple errored: \(error)")
         continuation?.resume(throwing: error)
     }
+}
+
+// MARK: - Auth Errors
+enum AuthError: LocalizedError {
+    case configurationError
+    case tokenError
+    case userCancelled
+    
+    var errorDescription: String? {
+        switch self {
+        case .configurationError:
+            return "Authentication configuration error"
+        case .tokenError:
+            return "Failed to retrieve authentication token"
+        case .userCancelled:
+            return "User cancelled authentication"
+        }
+    }
 } 

@@ -6,7 +6,6 @@ import UIKit
 protocol FirebaseAuthService {
     func createUser(email: String, password: String) async throws -> AuthDataResult
     func signIn(email: String, password: String) async throws -> AuthDataResult
-    func signInWithGoogle(presenting: UIViewController) async throws -> AuthDataResult
     func signInWithApple() async throws -> AuthDataResult
     func signOut() throws
 }
@@ -35,19 +34,6 @@ final class FirebaseAuthServiceImpl: FirebaseAuthService {
             return result
         } catch {
             print("❌ [FirebaseAuthService] Sign in failed: \(error)")
-            throw error
-        }
-    }
-    
-    func signInWithGoogle(presenting: UIViewController) async throws -> AuthDataResult {
-        print("🔐 [FirebaseAuthService] Starting Google sign-in")
-        do {
-            let credential = try await GoogleSignInHelper.signIn(presenting: presenting)
-            let result = try await Auth.auth().signIn(with: credential)
-            print("✅ [FirebaseAuthService] Google sign-in successful: \(result.user.uid)")
-            return result
-        } catch {
-            print("❌ [FirebaseAuthService] Google sign-in failed: \(error)")
             throw error
         }
     }

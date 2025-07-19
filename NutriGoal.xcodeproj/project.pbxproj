@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D614CEC62E2C635A00D3B20A /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = D614CEC52E2C635A00D3B20A /* GoogleSignIn */; };
 		D6F209BF2DFA250F0052C1CF /* OpenAI in Frameworks */ = {isa = PBXBuildFile; productRef = D6F209BE2DFA250F0052C1CF /* OpenAI */; };
 		D6F209C22DFA26CD0052C1CF /* FirebaseAI in Frameworks */ = {isa = PBXBuildFile; productRef = D6F209C12DFA26CD0052C1CF /* FirebaseAI */; };
 		D6F209C42DFA26CD0052C1CF /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = D6F209C32DFA26CD0052C1CF /* FirebaseAnalytics */; };
@@ -87,6 +88,7 @@
 				D6F209DB2DFA27620052C1CF /* RevenueCatUI in Frameworks */,
 				D6F209C22DFA26CD0052C1CF /* FirebaseAI in Frameworks */,
 				D6F209CE2DFA26CD0052C1CF /* FirebaseDynamicLinks in Frameworks */,
+				D614CEC62E2C635A00D3B20A /* GoogleSignIn in Frameworks */,
 				D6F209CA2DFA26CD0052C1CF /* FirebaseCrashlytics in Frameworks */,
 				D6F209D02DFA26CD0052C1CF /* FirebaseFirestore in Frameworks */,
 				D6F209D72DFA27620052C1CF /* ReceiptParser in Frameworks */,
@@ -170,6 +172,7 @@
 				D6F209D62DFA27620052C1CF /* ReceiptParser */,
 				D6F209D82DFA27620052C1CF /* RevenueCat */,
 				D6F209DA2DFA27620052C1CF /* RevenueCatUI */,
+				D614CEC52E2C635A00D3B20A /* GoogleSignIn */,
 			);
 			productName = NutriGoal;
 			productReference = D64D1C5F2DF41F930078975E /* NutriGoal.app */;
@@ -257,6 +260,7 @@
 				D6F209BD2DFA250F0052C1CF /* XCRemoteSwiftPackageReference "OpenAI" */,
 				D6F209C02DFA26CD0052C1CF /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				D6F209D52DFA27620052C1CF /* XCRemoteSwiftPackageReference "purchases-ios" */,
+				D614CEC42E2C635A00D3B20A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D64D1C602DF41F930078975E /* Products */;
@@ -623,6 +627,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		D614CEC42E2C635A00D3B20A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.0.0;
+			};
+		};
 		D6F209BD2DFA250F0052C1CF /* XCRemoteSwiftPackageReference "OpenAI" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/MacPaw/OpenAI";
@@ -650,6 +662,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		D614CEC52E2C635A00D3B20A /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D614CEC42E2C635A00D3B20A /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
 		D6F209BE2DFA250F0052C1CF /* OpenAI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D6F209BD2DFA250F0052C1CF /* XCRemoteSwiftPackageReference "OpenAI" */;

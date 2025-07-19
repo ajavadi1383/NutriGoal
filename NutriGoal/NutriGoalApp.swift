@@ -7,11 +7,9 @@
 
 import SwiftUI
 import FirebaseCore
-import GoogleSignIn
 
 @main
 struct NutriGoalApp: App {
-    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     
     init() {
         FirebaseApp.configure()
@@ -21,34 +19,6 @@ struct NutriGoalApp: App {
         WindowGroup {
             ContentView()
         }
-    }
-}
-
-// MARK: - App Delegate for Google Sign-In
-class AppDelegate: NSObject, UIApplicationDelegate {
-    
-    func application(
-        _ application: UIApplication,
-        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
-    ) -> Bool {
-        print("🚀 [AppDelegate] App finished launching")
-        return true
-    }
-    
-    func application(
-        _ app: UIApplication,
-        open url: URL,
-        options: [UIApplication.OpenURLOptionsKey: Any] = [:]
-    ) -> Bool {
-        print("🔗 [AppDelegate] Handling URL: \(url)")
-        
-        // Handle Google Sign-In callback
-        if GIDSignIn.sharedInstance.handle(url) {
-            print("✅ [AppDelegate] Google Sign-In handled URL")
-            return true
-        }
-        
-        return false
     }
 }
 

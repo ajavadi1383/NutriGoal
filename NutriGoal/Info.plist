@@ -59,21 +59,6 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	
-	<!-- TODO: Configure Authentication URL Schemes -->
-	<!-- 
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>GoogleSignIn</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>com.googleusercontent.apps.YOUR_REVERSED_CLIENT_ID</string>
-			</array>
-		</dict>
-	</array>
-	-->
-	
 	<!-- TODO: Enable Sign in with Apple Capability in Xcode -->
 	<!-- Go to Signing & Capabilities -> + Capability -> Sign in with Apple -->
 </dict>

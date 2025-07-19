@@ -60,31 +60,7 @@ final class AuthViewModel: ObservableObject {
         isLoading = false
     }
     
-    // MARK: - Social Authentication
-    func googleTapped() async {
-        print("🟢 [AuthViewModel] Google sign-in tapped")
-        isLoading = true
-        
-        do {
-            // Get root view controller for presentation
-            guard let rootVC = await getRootViewController() else {
-                print("❌ [AuthViewModel] Could not get root view controller")
-                isLoading = false
-                return
-            }
-            
-            let result = try await authService.signInWithGoogle(presenting: rootVC)
-            print("✅ [AuthViewModel] Google sign-in successful: \(result.user.uid)")
-            await syncOnboardingDataIfNeeded()
-            router.to(.home)
-        } catch {
-            print("❌ [AuthViewModel] Google sign-in failed: \(error)")
-            // TODO: Show error to user
-        }
-        
-        isLoading = false
-    }
-    
+    // MARK: - Apple Authentication
     func appleTapped() async {
         print("🍎 [AuthViewModel] Apple sign-in tapped")
         isLoading = true
@@ -109,14 +85,6 @@ final class AuthViewModel: ObservableObject {
     }
     
     // MARK: - Helper Methods
-    private func getRootViewController() async -> UIViewController? {
-        guard let windowScene = await UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = await windowScene.windows.first else {
-            return nil
-        }
-        return await window.rootViewController
-    }
-    
     private func syncOnboardingDataIfNeeded() async {
         print("🔄 [AuthViewModel] Syncing onboarding data to Firebase")
         

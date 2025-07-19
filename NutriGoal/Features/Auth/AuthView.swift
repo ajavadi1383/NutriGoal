@@ -65,31 +65,20 @@ struct AuthView: View {
                 }
                 .padding(.vertical, NGSize.spacing)
                 
-                // Social Auth Buttons
-                VStack(spacing: NGSize.spacing) {
-                    // Google Sign-In
-                    PrimaryButton(title: "Continue with Google") {
+                // Apple Sign-In
+                SignInWithAppleButton(
+                    onRequest: { request in
+                        // Configure the request if needed
+                    },
+                    onCompletion: { result in
                         Task {
-                            await viewModel.googleTapped()
+                            await viewModel.appleTapped()
                         }
                     }
-                    .disabled(viewModel.isLoading)
-                    
-                    // Apple Sign-In
-                    SignInWithAppleButton(
-                        onRequest: { request in
-                            // Configure the request if needed
-                        },
-                        onCompletion: { result in
-                            Task {
-                                await viewModel.appleTapped()
-                            }
-                        }
-                    )
-                    .signInWithAppleButtonStyle(.white)
-                    .frame(height: 48)
-                    .cornerRadius(NGSize.corner)
-                }
+                )
+                .signInWithAppleButtonStyle(.white)
+                .frame(height: 48)
+                .cornerRadius(NGSize.corner)
                 
                 Spacer()
                 
