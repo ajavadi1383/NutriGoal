@@ -31,6 +31,8 @@ struct ContentView: View {
             switch router.route {
             case .hero:
                 HeroView(router: router)
+            case .auth:
+                AuthView(router: router)
             case .onboarding:
                 OnboardingView()
                     .environmentObject(router)
