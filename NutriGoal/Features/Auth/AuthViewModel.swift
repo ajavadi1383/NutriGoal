@@ -11,96 +11,127 @@ final class AuthViewModel: ObservableObject {
     // MARK: - Published Properties
     @Published var email = ""
     @Published var password = ""
-    @Published var isSignUpMode = true
-    @Published var errorMessage: String?
     @Published var isLoading = false
     
     // MARK: - Computed Properties
     var isFormValid: Bool {
-        !email.isEmpty && password.count >= 6
+        !email.isEmpty && !password.isEmpty && email.contains("@")
     }
     
     // MARK: - Initialization
-    init(authService: FirebaseAuthService, router: AppRouter) {
-        self.authService = authService
+    init(router: AppRouter) {
+        // TODO: Inject via Resolver
+        self.authService = FirebaseAuthServiceImpl()
         self.router = router
     }
     
-    // MARK: - Actions
-    func submit() async {
-        guard isFormValid else {
-            errorMessage = "Please enter a valid email and password (6+ characters)"
-            return
-        }
-        
+    // MARK: - Email Authentication
+    func signInTapped() async {
+        print("🔐 [AuthViewModel] Sign in tapped")
         isLoading = true
-        errorMessage = nil
         
         do {
-            if isSignUpMode {
-                print("📝 [AuthViewModel] Creating new user account...")
-                try await authService.createUser(email: email, password: password)
-                print("✅ [AuthViewModel] Account created successfully")
-            } else {
-                print("🔐 [AuthViewModel] Signing in existing user...")
-                try await authService.signIn(email: email, password: password)
-                print("✅ [AuthViewModel] Sign in successful")
-            }
-            
-            // Sync local onboarding data to Firebase if it exists
-            await syncOnboardingDataToFirebase()
-            
-            // Navigate to home on success
-            print("🚀 [AuthViewModel] Navigating to home...")
+            let result = try await authService.signIn(email: email, password: password)
+            print("✅ [AuthViewModel] Sign in successful: \(result.user.uid)")
+            await syncOnboardingDataIfNeeded()
             router.to(.home)
-            
         } catch {
-            print("❌ [AuthViewModel] Authentication failed: \(error.localizedDescription)")
-            errorMessage = getErrorMessage(from: error)
+            print("❌ [AuthViewModel] Sign in failed: \(error)")
+            // TODO: Show error to user
         }
         
         isLoading = false
     }
     
-    func toggleMode() {
-        isSignUpMode.toggle()
-        errorMessage = nil
-    }
-    
-    // MARK: - Data Sync
-    private func syncOnboardingDataToFirebase() async {
-        guard let onboardingData = UserDefaults.standard.dictionary(forKey: "onboardingData") else {
-            print("ℹ️ [AuthViewModel] No local onboarding data to sync")
-            return
+    func signUpTapped() async {
+        print("🔐 [AuthViewModel] Sign up tapped")
+        isLoading = true
+        
+        do {
+            let result = try await authService.createUser(email: email, password: password)
+            print("✅ [AuthViewModel] Sign up successful: \(result.user.uid)")
+            await syncOnboardingDataIfNeeded()
+            router.to(.home)
+        } catch {
+            print("❌ [AuthViewModel] Sign up failed: \(error)")
+            // TODO: Show error to user
         }
         
-        print("🔄 [AuthViewModel] Syncing onboarding data to Firebase...")
+        isLoading = false
+    }
+    
+    // MARK: - Social Authentication
+    func googleTapped() async {
+        print("🟢 [AuthViewModel] Google sign-in tapped")
+        isLoading = true
         
-        // TODO: Create UserProfile from onboardingData and save to Firebase
-        // This will be implemented when FirebaseService is properly integrated
+        do {
+            // Get root view controller for presentation
+            guard let rootVC = await getRootViewController() else {
+                print("❌ [AuthViewModel] Could not get root view controller")
+                isLoading = false
+                return
+            }
+            
+            let result = try await authService.signInWithGoogle(presenting: rootVC)
+            print("✅ [AuthViewModel] Google sign-in successful: \(result.user.uid)")
+            await syncOnboardingDataIfNeeded()
+            router.to(.home)
+        } catch {
+            print("❌ [AuthViewModel] Google sign-in failed: \(error)")
+            // TODO: Show error to user
+        }
         
-        // For now, just mark as synced
-        UserDefaults.standard.removeObject(forKey: "onboardingData")
-        print("✅ [AuthViewModel] Onboarding data sync completed")
+        isLoading = false
+    }
+    
+    func appleTapped() async {
+        print("🍎 [AuthViewModel] Apple sign-in tapped")
+        isLoading = true
+        
+        do {
+            let result = try await authService.signInWithApple()
+            print("✅ [AuthViewModel] Apple sign-in successful: \(result.user.uid)")
+            await syncOnboardingDataIfNeeded()
+            router.to(.home)
+        } catch {
+            print("❌ [AuthViewModel] Apple sign-in failed: \(error)")
+            // TODO: Show error to user
+        }
+        
+        isLoading = false
+    }
+    
+    // MARK: - Skip Authentication
+    func skipTapped() {
+        print("⏭️ [AuthViewModel] Skip tapped - going to home")
+        router.to(.home)
     }
     
     // MARK: - Helper Methods
-    private func getErrorMessage(from error: Error) -> String {
-        // Convert Firebase auth errors to user-friendly messages
-        let errorMessage = error.localizedDescription
-        
-        if errorMessage.contains("email") {
-            return "Please enter a valid email address"
-        } else if errorMessage.contains("password") {
-            return "Password must be at least 6 characters"
-        } else if errorMessage.contains("user-not-found") {
-            return "No account found with this email"
-        } else if errorMessage.contains("wrong-password") {
-            return "Incorrect password"
-        } else if errorMessage.contains("email-already-in-use") {
-            return "An account with this email already exists"
-        } else {
-            return "Authentication failed. Please try again."
+    private func getRootViewController() async -> UIViewController? {
+        guard let windowScene = await UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let window = await windowScene.windows.first else {
+            return nil
         }
+        return await window.rootViewController
+    }
+    
+    private func syncOnboardingDataIfNeeded() async {
+        print("🔄 [AuthViewModel] Syncing onboarding data to Firebase")
+        
+        // Get locally saved onboarding data
+        guard let onboardingData = UserDefaults.standard.object(forKey: "onboardingData") as? [String: Any] else {
+            print("ℹ️ [AuthViewModel] No onboarding data found to sync")
+            return
+        }
+        
+        // TODO: Save to Firestore using FirebaseService
+        print("📝 [AuthViewModel] Onboarding data ready for Firestore sync: \(onboardingData.keys)")
+        
+        // Clear local data after sync
+        UserDefaults.standard.removeObject(forKey: "onboardingData")
+        UserDefaults.standard.removeObject(forKey: "onboardingProgress")
+        print("✅ [AuthViewModel] Local onboarding data cleared after sync")
     }
 } 

@@ -1,110 +1,132 @@
 import SwiftUI
+import AuthenticationServices
 
 struct AuthView: View {
     @StateObject private var viewModel: AuthViewModel
     
     init(router: AppRouter) {
-        // TODO: Inject via Resolver
-        let authService = FirebaseAuthServiceImpl()
-        self._viewModel = StateObject(wrappedValue: AuthViewModel(authService: authService, router: router))
+        self._viewModel = StateObject(wrappedValue: AuthViewModel(router: router))
     }
     
     var body: some View {
-        VStack(spacing: NGSize.spacing * 2) {
-            Spacer()
-            
-            // App icon and title
-            VStack(spacing: NGSize.spacing) {
-                Image(systemName: "flame.fill")
-                    .resizable()
-                    .frame(width: 80, height: 80)
-                    .foregroundColor(NGColor.primary)
+        HeroBaseView {
+            VStack(spacing: NGSize.spacing * 2) {
+                Spacer()
                 
-                Text("Welcome to NutriGoal")
+                // Title
+                Text("Welcome Back")
                     .font(NGFont.titleXL)
-                    .foregroundColor(NGColor.gray6)
-            }
-            
-            Spacer()
-            
-            // Auth form
-            VStack(spacing: NGSize.spacing) {
-                // Segmented control
-                Picker("Auth Mode", selection: $viewModel.isSignUpMode) {
-                    Text("Log In").tag(false)
-                    Text("Sign Up").tag(true)
-                }
-                .pickerStyle(.segmented)
-                .onChange(of: viewModel.isSignUpMode) { _ in
-                    viewModel.toggleMode()
-                }
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
                 
-                // Email field
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Email")
-                        .font(NGFont.bodyM)
-                        .foregroundColor(NGColor.gray6)
-                    
-                    TextField("Enter your email", text: $viewModel.email)
-                        .textFieldStyle(CustomTextFieldStyle())
-                        .keyboardType(.emailAddress)
+                // Email/Password Form
+                VStack(spacing: NGSize.spacing) {
+                    // Email field
+                    TextField("Email", text: $viewModel.email)
+                        .textFieldStyle(HeroTextFieldStyle())
                         .autocapitalization(.none)
-                        .disableAutocorrection(true)
-                }
-                
-                // Password field
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Password")
-                        .font(NGFont.bodyM)
-                        .foregroundColor(NGColor.gray6)
+                        .keyboardType(.emailAddress)
                     
-                    SecureField("Enter your password", text: $viewModel.password)
-                        .textFieldStyle(CustomTextFieldStyle())
-                }
-                
-                // Error message
-                if let errorMessage = viewModel.errorMessage {
-                    Text(errorMessage)
-                        .font(NGFont.bodyM)
-                        .multilineTextAlignment(.center)
-                        .padding(.top, 8)
-                }
-                
-                // Continue button
-                PrimaryButton(title: "Continue") {
-                    Task {
-                        await viewModel.submit()
+                    // Password field
+                    SecureField("Password", text: $viewModel.password)
+                        .textFieldStyle(HeroTextFieldStyle())
+                    
+                    // Email Auth Buttons
+                    HStack(spacing: NGSize.spacing) {
+                        PrimaryButton(title: "Sign In") {
+                            Task {
+                                await viewModel.signInTapped()
+                            }
+                        }
+                        .disabled(!viewModel.isFormValid || viewModel.isLoading)
+                        
+                        PrimaryButton(title: "Sign Up") {
+                            Task {
+                                await viewModel.signUpTapped()
+                            }
+                        }
+                        .disabled(!viewModel.isFormValid || viewModel.isLoading)
                     }
                 }
-                .disabled(!viewModel.isFormValid || viewModel.isLoading)
-                .overlay(
-                    Group {
-                        if viewModel.isLoading {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                .scaleEffect(0.8)
+                
+                // Divider
+                HStack {
+                    Rectangle()
+                        .fill(Color.white.opacity(0.3))
+                        .frame(height: 1)
+                    
+                    Text("or")
+                        .foregroundColor(.white.opacity(0.7))
+                        .font(NGFont.bodyM)
+                    
+                    Rectangle()
+                        .fill(Color.white.opacity(0.3))
+                        .frame(height: 1)
+                }
+                .padding(.vertical, NGSize.spacing)
+                
+                // Social Auth Buttons
+                VStack(spacing: NGSize.spacing) {
+                    // Google Sign-In
+                    PrimaryButton(title: "Continue with Google") {
+                        Task {
+                            await viewModel.googleTapped()
                         }
                     }
-                )
-                .padding(.top, NGSize.spacing)
+                    .disabled(viewModel.isLoading)
+                    
+                    // Apple Sign-In
+                    SignInWithAppleButton(
+                        onRequest: { request in
+                            // Configure the request if needed
+                        },
+                        onCompletion: { result in
+                            Task {
+                                await viewModel.appleTapped()
+                            }
+                        }
+                    )
+                    .signInWithAppleButtonStyle(.white)
+                    .frame(height: 48)
+                    .cornerRadius(NGSize.corner)
+                }
+                
+                Spacer()
+                
+                // Skip for now
+                Button("Skip for now") {
+                    viewModel.skipTapped()
+                }
+                .foregroundColor(.white.opacity(0.7))
+                .font(NGFont.bodyM)
+                
+                Spacer()
             }
-            .padding(.horizontal, NGSize.spacing)
-            
-            Spacer()
+            .padding()
         }
-        .background(NGColor.gray1)
+        .overlay(
+            Group {
+                if viewModel.isLoading {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(1.2)
+                }
+            }
+        )
     }
 }
 
-struct CustomTextFieldStyle: TextFieldStyle {
+// MARK: - Hero Text Field Style
+struct HeroTextFieldStyle: TextFieldStyle {
     func _body(configuration: TextField<Self._Label>) -> some View {
         configuration
-            .padding(NGSize.spacing)
-            .background(Color.white)
+            .padding()
+            .background(Color.white.opacity(0.2))
+            .foregroundColor(.white)
             .cornerRadius(NGSize.corner)
             .overlay(
                 RoundedRectangle(cornerRadius: NGSize.corner)
-                    .stroke(NGColor.gray3, lineWidth: 1)
+                    .stroke(Color.white.opacity(0.3), lineWidth: 1)
             )
     }
 }
