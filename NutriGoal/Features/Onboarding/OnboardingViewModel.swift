@@ -4,9 +4,7 @@ import SwiftUI
 @MainActor
 final class OnboardingViewModel: ObservableObject {
     
-    // MARK: - Dependencies
-    private var authManager: AuthManager?
-    private var firebaseService: FirebaseService?
+    // MARK: - Dependencies (set after onboarding completes)
     private var router: AppRouter?
     
     // MARK: - Published Properties
@@ -21,11 +19,9 @@ final class OnboardingViewModel: ObservableObject {
     @Published var dietType = ""
     @Published var lang = ""
     
-    // MARK: - Setup Dependencies
+    // MARK: - Setup Dependencies (No Firebase - offline only)
     func setupDependencies(router: AppRouter) {
-        // TODO: Inject via Resolver
-        self.authManager = FirebaseAuthManager()
-        self.firebaseService = FirebaseServiceImpl()
+        print("🎯 [OnboardingViewModel] setupDependencies - offline mode only")
         self.router = router
     }
     
@@ -36,9 +32,9 @@ final class OnboardingViewModel: ObservableObject {
         }
     }
     
-    // MARK: - Finish Onboarding
+    // MARK: - Finish Onboarding (Offline)
     func finish() async {
-        print("🎯 [OnboardingViewModel] finish() called")
+        print("🎯 [OnboardingViewModel] finish() called - saving locally only")
         
         // Save onboarding data locally (will sync to Firebase later when user authenticates)
         let onboardingData: [String: Any] = [
@@ -59,7 +55,7 @@ final class OnboardingViewModel: ObservableObject {
         
         // Mark as onboarded
         UserDefaults.standard.set(true, forKey: "onboarded")
-        print("✅ [OnboardingViewModel] Onboarding data saved locally")
+        print("✅ [OnboardingViewModel] Onboarding data saved locally (no network required)")
         
         // Navigate to auth for sign-up/log-in
         router?.to(.auth)
