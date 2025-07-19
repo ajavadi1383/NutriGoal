@@ -32,11 +32,34 @@ final class OnboardingViewModel: ObservableObject {
         }
     }
     
+    // MARK: - Save Current Page Data
+    func saveCurrentPageData() {
+        print("💾 [OnboardingViewModel] Saving data for page \(page)")
+        
+        // Save current state to UserDefaults for persistence
+        let currentData: [String: Any] = [
+            "page": page,
+            "birthDate": birthDate,
+            "sex": sex,
+            "heightCm": heightCm,
+            "weightKg": weightKg,
+            "activityLevel": activityLevel,
+            "target": target,
+            "weeklyPaceKg": weeklyPaceKg,
+            "dietType": dietType,
+            "lang": lang,
+            "lastUpdated": Date.now
+        ]
+        
+        UserDefaults.standard.set(currentData, forKey: "onboardingProgress")
+        print("✅ [OnboardingViewModel] Page \(page) data saved locally")
+    }
+    
     // MARK: - Finish Onboarding (Offline)
     func finish() async {
         print("🎯 [OnboardingViewModel] finish() called - saving locally only")
         
-        // Save onboarding data locally (will sync to Firebase later when user authenticates)
+        // Save final onboarding data locally (will sync to Firebase later when user authenticates)
         let onboardingData: [String: Any] = [
             "birthDate": birthDate,
             "sex": sex,
