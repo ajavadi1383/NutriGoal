@@ -40,20 +40,50 @@ struct ContentView: View {
                 HomeView()
             }
         }
-        .task {
-            // Check onboarding status and set initial route
-            if UserDefaults.standard.bool(forKey: "onboarded") {
-                router.to(.home)
-            } else {
-                router.to(.hero)
-            }
+        .onAppear {
+            setupInitialRoute()
         }
+    }
+    
+    private func setupInitialRoute() {
+        let isOnboarded = UserDefaults.standard.bool(forKey: "onboarded")
+        print("🚀 [NutriGoalApp] App starting...")
+        print("📱 [NutriGoalApp] Onboarded status: \(isOnboarded)")
+        
+        // FOR TESTING: Reset onboarding to always start fresh
+        UserDefaults.standard.set(false, forKey: "onboarded")
+        print("🔄 [NutriGoalApp] Reset onboarding for testing")
+        
+        // Always start with Hero for now
+        router.to(.hero)
+        print("✅ [NutriGoalApp] Starting with Hero screen")
     }
 }
 
 struct HomeView: View {
     var body: some View {
-        Text("Welcome to NutriGoal!")
-            .font(.largeTitle)
+        HeroBaseView {
+            VStack(spacing: NGSize.spacing * 2) {
+                Spacer()
+                
+                Text("Welcome to NutriGoal!")
+                    .font(NGFont.titleXL)
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                
+                Text("Your health journey starts here")
+                    .font(NGFont.body)
+                    .foregroundColor(.white.opacity(0.8))
+                    .multilineTextAlignment(.center)
+                
+                Spacer()
+                
+                PrimaryButton(title: "Continue") {
+                    // TODO: Navigate to main app
+                    print("🏠 Home: Continue tapped")
+                }
+            }
+            .padding()
+        }
     }
 }
