@@ -42,8 +42,12 @@ struct ContentView: View {
                 // TODO: Landing/welcome screen
                 Button("Get Started") {
                     Task {
-                        try? await authManager.signInAnonymously()
-                        showOnboarding = true
+                        do {
+                            try await authManager.signInAnonymously()
+                            showOnboarding = true
+                        } catch {
+                            print("❌ [\(#function)] \(error.localizedDescription)")
+                        }
                     }
                 }
                 .buttonStyle(.borderedProminent)

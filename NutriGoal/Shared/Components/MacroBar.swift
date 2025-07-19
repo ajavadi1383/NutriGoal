@@ -58,7 +58,7 @@ struct MacroBar: View {
                     HStack {
                         Capsule()
                             .fill(progressColor)
-                            .frame(width: max(0, CGFloat(progress) * 200))
+                            .frame(width: Swift.max(0, CGFloat(progress) * 200))
                         Spacer(minLength: 0)
                     }
                 )

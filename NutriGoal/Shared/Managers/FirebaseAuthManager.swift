@@ -38,11 +38,16 @@ final class FirebaseAuthManager: AuthManager, ObservableObject {
     }
     
     func signInAnonymously() async throws {
-        let result = try await Auth.auth().signInAnonymously()
-        guard !result.user.uid.isEmpty else {
-            throw AuthError.anonymousSignInFailed
+        do {
+            let result = try await Auth.auth().signInAnonymously()
+            guard !result.user.uid.isEmpty else {
+                throw AuthError.anonymousSignInFailed
+            }
+            // currentUID will be automatically updated via state listener
+        } catch {
+            print("❌ [\(#function)] \(error.localizedDescription)")
+            throw error
         }
-        // currentUID will be automatically updated via state listener
     }
     
     func signOut() throws {

@@ -36,7 +36,7 @@ struct CalorieRing: View {
             
             // Progress ring
             Circle()
-                .trim(from: 0, to: min(progress, 1.0))
+                .trim(from: 0, to: Swift.min(progress, 1.0))
                 .stroke(
                     ringColor,
                     style: StrokeStyle(lineWidth: 12, lineCap: .round)

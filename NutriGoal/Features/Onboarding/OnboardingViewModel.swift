@@ -91,8 +91,8 @@ final class OnboardingViewModel: ObservableObject {
             try await firebaseService?.save(profile: profile)
             onboardingComplete = true
         } catch {
+            print("❌ [\(#function)] \(error.localizedDescription)")
             // TODO: Show error to user
-            print("Failed to save profile: \(error)")
         }
     }
     
