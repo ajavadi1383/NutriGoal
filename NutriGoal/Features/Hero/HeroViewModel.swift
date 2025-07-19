@@ -1,15 +1,6 @@
 import Foundation
 import SwiftUI
 
-// TODO: Define Router protocol
-protocol Router {
-    func route(to destination: NavigationDestination)
-}
-
-enum NavigationDestination {
-    case onboarding
-}
-
 @MainActor
 final class HeroViewModel: ObservableObject {
     
