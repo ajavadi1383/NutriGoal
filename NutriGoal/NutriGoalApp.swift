@@ -28,10 +28,14 @@ struct ContentView: View {
     
     var body: some View {
         Group {
-            if authManager.currentUID != nil {
+            if UserDefaults.standard.bool(forKey: "onboarded") == false {
+                HeroView()
+            } else if authManager.currentUID != nil {
                 if showOnboarding {
                     OnboardingView(authManager: authManager) {
                         showOnboarding = false
+                        // TODO: Set onboarded flag after onboarding completes
+                        UserDefaults.standard.set(true, forKey: "onboarded")
                     }
                 } else {
                     // TODO: Main app view after onboarding
@@ -39,18 +43,7 @@ struct ContentView: View {
                         .font(.largeTitle)
                 }
             } else {
-                // TODO: Landing/welcome screen
-                Button("Get Started") {
-                    Task {
-                        do {
-                            try await authManager.signInAnonymously()
-                            showOnboarding = true
-                        } catch {
-                            print("❌ [\(#function)] \(error.localizedDescription)")
-                        }
-                    }
-                }
-                .buttonStyle(.borderedProminent)
+                HeroView()
             }
         }
         .task {
