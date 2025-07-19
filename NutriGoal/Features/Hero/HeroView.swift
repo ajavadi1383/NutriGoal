@@ -3,10 +3,10 @@ import SwiftUI
 struct HeroView: View {
     @StateObject private var viewModel: HeroViewModel
     
-    init() {
+    init(router: AppRouter) {
         // TODO: Inject via Resolver
         let authManager = FirebaseAuthManager()
-        self._viewModel = StateObject(wrappedValue: HeroViewModel(authManager: authManager))
+        self._viewModel = StateObject(wrappedValue: HeroViewModel(authManager: authManager, router: router))
     }
     
     var body: some View {
@@ -51,5 +51,5 @@ struct HeroView: View {
 }
 
 #Preview {
-    HeroView()
+    HeroView(router: AppRouter())
 } 

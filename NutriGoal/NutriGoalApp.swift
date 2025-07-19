@@ -23,35 +23,35 @@ struct NutriGoalApp: App {
 }
 
 struct ContentView: View {
+    @StateObject private var router = AppRouter()
     @StateObject private var authManager = FirebaseAuthManager()
-    @State private var showOnboarding = false
     
     var body: some View {
         Group {
-            if UserDefaults.standard.bool(forKey: "onboarded") == false {
-                HeroView()
-            } else if authManager.currentUID != nil {
-                if showOnboarding {
-                    OnboardingView(authManager: authManager) {
-                        showOnboarding = false
-                        // TODO: Set onboarded flag after onboarding completes
-                        UserDefaults.standard.set(true, forKey: "onboarded")
-                    }
-                } else {
-                    // TODO: Main app view after onboarding
-                    Text("Welcome to NutriGoal!")
-                        .font(.largeTitle)
-                }
-            } else {
-                HeroView()
+            switch router.route {
+            case .hero:
+                HeroView(router: router)
+            case .onboarding:
+                OnboardingView()
+                    .environmentObject(router)
+            case .home:
+                HomeView()
             }
         }
         .task {
-            for await user in authManager.authStateStream {
-                if user != nil && !showOnboarding {
-                    showOnboarding = true
-                }
+            // Check onboarding status and set initial route
+            if UserDefaults.standard.bool(forKey: "onboarded") {
+                router.to(.home)
+            } else {
+                router.to(.hero)
             }
         }
+    }
+}
+
+struct HomeView: View {
+    var body: some View {
+        Text("Welcome to NutriGoal!")
+            .font(.largeTitle)
     }
 }

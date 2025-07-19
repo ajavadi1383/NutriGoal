@@ -1,177 +1,273 @@
 import SwiftUI
 
 struct OnboardingView: View {
-    @StateObject private var viewModel: OnboardingViewModel
-    private let onComplete: () -> Void
-    
-    init(authManager: AuthManager, onComplete: @escaping () -> Void) {
-        // TODO: Inject FirebaseService when implemented
-        self._viewModel = StateObject(wrappedValue: OnboardingViewModel(authManager: authManager, firebaseService: nil))
-        self.onComplete = onComplete
-    }
+    @StateObject private var viewModel = OnboardingViewModel()
     
     var body: some View {
         VStack {
-            // TODO: Add progress indicator UI polish
-            ProgressView(value: Double(viewModel.currentStep + 1), total: 8)
-                .progressViewStyle(LinearProgressViewStyle())
-                .padding()
-            
-            TabView(selection: $viewModel.currentStep) {
-                birthDateStep.tag(0)
-                sexStep.tag(1)
-                heightStep.tag(2)
-                weightStep.tag(3)
-                activityStep.tag(4)
-                targetStep.tag(5)
-                goalPaceStep.tag(6)
-                dietTypeStep.tag(7)
+            // Progress indicator
+            HStack {
+                ForEach(0..<9, id: \.self) { index in
+                    Rectangle()
+                        .fill(index <= viewModel.page ? NGColor.primary : NGColor.gray3)
+                        .frame(height: 4)
+                        .animation(.easeInOut, value: viewModel.page)
+                }
             }
-            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+            .padding(.horizontal)
+            .padding(.top)
+            
+            TabView(selection: $viewModel.page) {
+                // Page 0: Birth Date
+                OnboardingPageView(
+                    title: "When were you born?",
+                    isValid: true
+                ) {
+                    DatePicker("Birth Date", selection: $viewModel.birthDate, displayedComponents: .date)
+                        .datePickerStyle(.wheel)
+                        .labelsHidden()
+                }
+                .tag(0)
+                
+                // Page 1: Sex
+                OnboardingPageView(
+                    title: "What's your sex?",
+                    isValid: !viewModel.sex.isEmpty
+                ) {
+                    VStack(spacing: NGSize.spacing) {
+                        Button("Male") {
+                            viewModel.sex = "male"
+                        }
+                        .buttonStyle(SelectionButtonStyle(isSelected: viewModel.sex == "male"))
+                        
+                        Button("Female") {
+                            viewModel.sex = "female"
+                        }
+                        .buttonStyle(SelectionButtonStyle(isSelected: viewModel.sex == "female"))
+                    }
+                }
+                .tag(1)
+                
+                // Page 2: Height
+                OnboardingPageView(
+                    title: "How tall are you?",
+                    isValid: viewModel.heightCm > 0
+                ) {
+                    VStack {
+                        Text("\(viewModel.heightCm) cm")
+                            .font(NGFont.titleXL)
+                        
+                        Slider(value: Binding(
+                            get: { Double(viewModel.heightCm) },
+                            set: { viewModel.heightCm = Int($0) }
+                        ), in: 120...220, step: 1)
+                    }
+                }
+                .tag(2)
+                
+                // Page 3: Weight
+                OnboardingPageView(
+                    title: "What's your weight?",
+                    isValid: viewModel.weightKg > 0
+                ) {
+                    VStack {
+                        Text(String(format: "%.1f kg", viewModel.weightKg))
+                            .font(NGFont.titleXL)
+                        
+                        Slider(value: $viewModel.weightKg, in: 30...200, step: 0.5)
+                    }
+                }
+                .tag(3)
+                
+                // Page 4: Activity
+                OnboardingPageView(
+                    title: "How active are you?",
+                    isValid: !viewModel.activityLevel.isEmpty
+                ) {
+                    VStack(spacing: NGSize.spacing) {
+                        Button("1-2 days/week") {
+                            viewModel.activityLevel = "1-2"
+                        }
+                        .buttonStyle(SelectionButtonStyle(isSelected: viewModel.activityLevel == "1-2"))
+                        
+                        Button("3-4 days/week") {
+                            viewModel.activityLevel = "3-4"
+                        }
+                        .buttonStyle(SelectionButtonStyle(isSelected: viewModel.activityLevel == "3-4"))
+                        
+                        Button("5-6 days/week") {
+                            viewModel.activityLevel = "5-6"
+                        }
+                        .buttonStyle(SelectionButtonStyle(isSelected: viewModel.activityLevel == "5-6"))
+                    }
+                }
+                .tag(4)
+                
+                // Page 5: Target
+                OnboardingPageView(
+                    title: "What's your goal?",
+                    isValid: !viewModel.target.isEmpty
+                ) {
+                    VStack(spacing: NGSize.spacing) {
+                        Button("Lose weight") {
+                            viewModel.target = "lose"
+                        }
+                        .buttonStyle(SelectionButtonStyle(isSelected: viewModel.target == "lose"))
+                        
+                        Button("Maintain weight") {
+                            viewModel.target = "maintain"
+                        }
+                        .buttonStyle(SelectionButtonStyle(isSelected: viewModel.target == "maintain"))
+                        
+                        Button("Gain muscle") {
+                            viewModel.target = "gain"
+                        }
+                        .buttonStyle(SelectionButtonStyle(isSelected: viewModel.target == "gain"))
+                    }
+                }
+                .tag(5)
+                
+                // Page 6: Weekly Pace
+                OnboardingPageView(
+                    title: "Weekly pace goal?",
+                    isValid: viewModel.weeklyPaceKg >= 0
+                ) {
+                    VStack {
+                        Text(String(format: "%.1f kg/week", viewModel.weeklyPaceKg))
+                            .font(NGFont.titleXL)
+                        
+                        Slider(value: $viewModel.weeklyPaceKg, in: 0...2, step: 0.1)
+                    }
+                }
+                .tag(6)
+                
+                // Page 7: Diet Type
+                OnboardingPageView(
+                    title: "Any dietary preferences?",
+                    isValid: !viewModel.dietType.isEmpty
+                ) {
+                    VStack(spacing: NGSize.spacing) {
+                        Button("None") {
+                            viewModel.dietType = "none"
+                        }
+                        .buttonStyle(SelectionButtonStyle(isSelected: viewModel.dietType == "none"))
+                        
+                        Button("Vegetarian") {
+                            viewModel.dietType = "vegetarian"
+                        }
+                        .buttonStyle(SelectionButtonStyle(isSelected: viewModel.dietType == "vegetarian"))
+                        
+                        Button("Vegan") {
+                            viewModel.dietType = "vegan"
+                        }
+                        .buttonStyle(SelectionButtonStyle(isSelected: viewModel.dietType == "vegan"))
+                        
+                        Button("Keto") {
+                            viewModel.dietType = "keto"
+                        }
+                        .buttonStyle(SelectionButtonStyle(isSelected: viewModel.dietType == "keto"))
+                    }
+                }
+                .tag(7)
+                
+                // Page 8: Language (Final)
+                OnboardingPageView(
+                    title: "Choose your language",
+                    isValid: !viewModel.lang.isEmpty,
+                    isLastPage: true
+                ) {
+                    VStack(spacing: NGSize.spacing) {
+                        Button("English") {
+                            viewModel.lang = "en"
+                        }
+                        .buttonStyle(SelectionButtonStyle(isSelected: viewModel.lang == "en"))
+                        
+                        Button("Türkçe") {
+                            viewModel.lang = "tr"
+                        }
+                        .buttonStyle(SelectionButtonStyle(isSelected: viewModel.lang == "tr"))
+                        
+                        Button("Español") {
+                            viewModel.lang = "es"
+                        }
+                        .buttonStyle(SelectionButtonStyle(isSelected: viewModel.lang == "es"))
+                    }
+                }
+                .tag(8)
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .onAppear {
+                viewModel.setupDependencies()
+            }
+        }
+    }
+}
+
+struct OnboardingPageView<Content: View>: View {
+    let title: String
+    let isValid: Bool
+    let isLastPage: Bool
+    let content: Content
+    
+    @EnvironmentObject private var viewModel: OnboardingViewModel
+    
+    init(title: String, isValid: Bool, isLastPage: Bool = false, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.isValid = isValid
+        self.isLastPage = isLastPage
+        self.content = content()
+    }
+    
+    var body: some View {
+        VStack(spacing: NGSize.spacing * 2) {
+            Spacer()
+            
+            Text(title)
+                .font(NGFont.titleXL)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            
+            content
+                .padding(.horizontal)
             
             Spacer()
             
-            Button(viewModel.currentStep == 7 ? "Finish" : "Next") {
-                if viewModel.currentStep == 7 {
+            if isLastPage {
+                PrimaryButton(title: "Finish") {
                     Task {
-                        await viewModel.finishOnboarding()
-                        onComplete()
+                        await viewModel.finish()
                     }
-                } else {
-                    viewModel.nextStep()
                 }
+                .disabled(!isValid)
+                .padding(.horizontal)
+            } else {
+                PrimaryButton(title: "Next") {
+                    viewModel.next()
+                }
+                .disabled(!isValid)
+                .padding(.horizontal)
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(!viewModel.canProceed)
-            .padding()
-        }
-        .navigationBarBackButtonHidden()
-    }
-    
-    // MARK: - Step Views
-    
-    private var birthDateStep: some View {
-        VStack(spacing: 20) {
-            Text("When were you born?")
-                .font(.title2)
-                .multilineTextAlignment(.center)
             
-            DatePicker("Birth Date", selection: $viewModel.birthDate, displayedComponents: .date)
-                .datePickerStyle(.wheel)
+            Spacer()
         }
-        .padding()
+        .environmentObject(viewModel)
     }
+}
+
+struct SelectionButtonStyle: ButtonStyle {
+    let isSelected: Bool
     
-    private var sexStep: some View {
-        VStack(spacing: 20) {
-            Text("What's your biological sex?")
-                .font(.title2)
-                .multilineTextAlignment(.center)
-            
-            Picker("Sex", selection: $viewModel.sex) {
-                Text("Male").tag("male")
-                Text("Female").tag("female")
-            }
-            .pickerStyle(.segmented)
-        }
-        .padding()
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .frame(maxWidth: .infinity)
+            .frame(height: 48)
+            .background(isSelected ? NGColor.primary : NGColor.gray2)
+            .foregroundColor(isSelected ? .white : NGColor.gray6)
+            .cornerRadius(NGSize.corner)
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
     }
-    
-    private var heightStep: some View {
-        VStack(spacing: 20) {
-            Text("What's your height?")
-                .font(.title2)
-                .multilineTextAlignment(.center)
-            
-            HStack {
-                TextField("Height (cm)", value: $viewModel.heightCm, format: .number)
-                    .textFieldStyle(.roundedBorder)
-                    .keyboardType(.numberPad)
-                Text("cm")
-            }
-        }
-        .padding()
-    }
-    
-    private var weightStep: some View {
-        VStack(spacing: 20) {
-            Text("What's your current weight?")
-                .font(.title2)
-                .multilineTextAlignment(.center)
-            
-            HStack {
-                TextField("Weight (kg)", value: $viewModel.weightKg, format: .number)
-                    .textFieldStyle(.roundedBorder)
-                    .keyboardType(.decimalPad)
-                Text("kg")
-            }
-        }
-        .padding()
-    }
-    
-    private var activityStep: some View {
-        VStack(spacing: 20) {
-            Text("How active are you?")
-                .font(.title2)
-                .multilineTextAlignment(.center)
-            
-            Picker("Activity Level", selection: $viewModel.activityLevel) {
-                Text("1-2 days/week").tag("1-2")
-                Text("3-4 days/week").tag("3-4")
-                Text("5-6 days/week").tag("5-6")
-            }
-            .pickerStyle(.wheel)
-        }
-        .padding()
-    }
-    
-    private var targetStep: some View {
-        VStack(spacing: 20) {
-            Text("What's your goal?")
-                .font(.title2)
-                .multilineTextAlignment(.center)
-            
-            Picker("Target", selection: $viewModel.target) {
-                Text("Lose Weight").tag("weight_loss")
-                Text("Maintain Weight").tag("maintain")
-                Text("Gain Muscle").tag("gain_muscle")
-            }
-            .pickerStyle(.wheel)
-        }
-        .padding()
-    }
-    
-    private var goalPaceStep: some View {
-        VStack(spacing: 20) {
-            Text("Weekly pace (kg per week)?")
-                .font(.title2)
-                .multilineTextAlignment(.center)
-            
-            HStack {
-                TextField("Pace", value: $viewModel.weeklyPaceKg, format: .number)
-                    .textFieldStyle(.roundedBorder)
-                    .keyboardType(.decimalPad)
-                Text("kg/week")
-            }
-        }
-        .padding()
-    }
-    
-    private var dietTypeStep: some View {
-        VStack(spacing: 20) {
-            Text("Any dietary preferences?")
-                .font(.title2)
-                .multilineTextAlignment(.center)
-            
-            Picker("Diet Type", selection: $viewModel.dietType) {
-                Text("No restrictions").tag("none")
-                Text("Vegan").tag("vegan")
-                Text("Vegetarian").tag("vegetarian")
-                Text("Keto").tag("keto")
-                Text("Paleo").tag("paleo")
-            }
-            .pickerStyle(.wheel)
-        }
-        .padding()
-    }
+}
+
+#Preview {
+    OnboardingView()
 } 

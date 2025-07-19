@@ -15,14 +15,15 @@ final class HeroViewModel: ObservableObject {
     
     // MARK: - Dependencies
     private let authManager: AuthManager
-    private let router: Router? = nil // TODO: real router
+    private let router: AppRouter
     
     // MARK: - Published Properties
     @Published var isLoading = false
     
     // MARK: - Initialization
-    init(authManager: AuthManager) {
+    init(authManager: AuthManager, router: AppRouter) {
         self.authManager = authManager
+        self.router = router
     }
     
     // MARK: - Actions
@@ -37,7 +38,7 @@ final class HeroViewModel: ObservableObject {
             }
             
             // Navigate to onboarding
-            router?.route(to: .onboarding) // TODO: real router
+            router.to(.onboarding)
             
         } catch {
             print("❌ [\(#function)] \(error.localizedDescription)")
