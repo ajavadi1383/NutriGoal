@@ -1,306 +1,172 @@
-# Product Requirements Document (PRD)
-
-## 📄 App Name: **NutriGoal**
-
-## 🚀 Purpose
-
-NutriGoal is an iOS-only AI-powered nutrition and lifestyle tracker designed to help users not only log food and activity but also reflect on their habits and progress through:
-
-* AI-generated daily journals
-* Chat-based AI motivation and habit coaching
-* Personalized lifestyle scoring (0–10)
-* Range-based calorie & macro goals
-* Deep integration with Apple Health for sleep, steps, and workouts
-
-NutriGoal offers a more emotionally supportive and intelligent alternative to traditional calorie trackers by combining data with daily coaching and habit reinforcement.
+# NutriGoal – Product Requirements Document (V2, July 2025)
 
 ---
 
-## 🧠 Target Platform
+## 1. Purpose & Vision
 
-* iOS 17+ (iPhone only)
-* Future Apple Watch support (phase 2)
+A **subscription‑only, iOS‑first fitness companion** that goes beyond calorie counting by:
 
----
+* Removing meal‑logging guilt with **🔄 AI Smart Swap** (instant micro‑tweak suggestions).
+* Delivering a **Weekly AI Report** that summarises progress and sets next‑week goals.
+* Supporting multi‑language users (EN 🇺🇸, TR 🇹🇷, ES 🇪🇸, ZH 🇨🇳) from day one.
 
-## ⚖️ Pricing Model
+Launch focus: Turkey ➜ Europe ➜ North America ➜ Australia.
 
-**Paid-only model**:
-
-* \$9.99/month
-* \$59.99/year
-
-Managed via **RevenueCat** for subscriptions.
+Pricing (RevenueCat): **\$20 / month** · **\$64 / year** · **8‑day free trial**. Apple Pay enabled via StoreKit2.
 
 ---
 
-## 🌐 Tech Stack
+## 2. Core User Flows
 
-### Frontend:
-
-* **SwiftUI** (UI layer)
-* **Combine / Swift Concurrency** (state + reactive logic)
-* **MVVM Clean Architecture**
-
-### Backend & Services:
-
-* **Firebase Authentication** (email, Google, Facebook, Apple Sign-In)
-* **Firebase Firestore** (user data, journal entries, meal logs)
-* **Firebase Cloud Functions** (optional business logic scaling)
-* **RevenueCat** (IAP subscription management)
-
-### External APIs:
-
-* **OpenAI GPT-4o** (AI journaling, chat-based coaching, and food recognition)
-* **Open Food Facts / USDA API** (barcode scanning + nutrition DB)
-* **HealthKit** (steps, sleep, active energy, workouts)
+1. **Onboarding (mandatory)** → collects profile → creates `/users/{uid}`.
+2. **Home** (day dashboard) → meal log cards with Smart Swap.
+3. **Progress** → weight, calories, BMR charts (7 / 30 / 90 d).
+4. **Reports** → weekly AI summaries (phase 2).
+5. **Settings** → subs, profile edit, language picker.
 
 ---
 
-## 🌟 Features
+## 3. Onboarding Data & Calculations
 
-### Core Features:
+### 3.1 Question set
 
-* Personalized onboarding to determine calorie/macro **ranges**, goals, and journal tone
-* AI-generated **daily journal** reflecting on food, sleep, activity, mood
-* **Chat-based AI coach** for real-time motivation, emotional support, habit advice
-* **Lifestyle score** (0–10) calculated using:
+| Step                                           | Field                        | Stored key |
+| ---------------------------------------------- | ---------------------------- | ---------- |
+| Birth date                                     | `birthDate`                  |            |
+| Sex (M/F)                                      | `sex`                        |            |
+| Height & units                                 | `height_cm` / `height_ft_in` |            |
+| Weight & units                                 | `weight_kg` / `weight_lb`    |            |
+| Activity (1‑2 / 3‑4 / 5‑6 days)                | `activityLevel`              |            |
+| Fitness target (lose / maintain / gain muscle) | `target`                     |            |
+| Weekly pace (kg/lb) & goal date                | `weeklyPaceKg`, `goalDate`   |            |
+| Diet type (vegan / keto / etc.)                | `dietType`                   |            |
+| Apple Health permissions                       | stored in Keychain flag      |            |
+| Language (EN/TR/ES/ZH)                         | `lang`                       |            |
 
-  * Calorie adherence (to range)
-  * Protein, fat, carb balance
-  * Steps/activity
-  * Water intake
-  * Sleep duration
-  * Bedtime consistency
-* **Food logging**:
+### 3.2 Daily Calorie & Macro Engine
 
-  * Manual entry
-  * Barcode scanner
-  * AI photo recognition (GPT-4o or CalorieMama)
-* **Apple Health Integration**:
+1. **Basal Metabolic Rate (Mifflin‑St Jeor)**
+   `BMR = 10 × weightKg + 6.25 × heightCm – 5 × age + s` where `s = +5 (male)` / `‑161 (female)`
+2. **TDEE** = BMR × activity factor (1.2 / 1.375 / 1.55).
+3. **Calorie target**
 
-  * Read steps, workouts, sleep, calories burned
-  * Optional read heart rate, body weight
-* **User Authentication**:
+   * weight‑loss ⇒ `‑(weeklyPaceKg × 7700) / 7` kcal def  (min 1200 kcal)
+   * gain‑muscle ⇒ surplus `+300`.
+4. **Macro ranges**
 
-  * Email/password
-  * Google, Facebook, Apple login (via Firebase)
+   * Protein = `1.6‑2.2 g × weightKg`
+   * Fat = `0.8‑1.0 g × weightKg`
+   * Carbs = calories‑derived remainder.
+5. **Hydration goal** = `35 ml × weightKg`.
+6. **Sleep target** = 7‑9 h (advice text only).
 
----
-
-## 📆 App Flow Overview
-
-1. **Splash & Onboarding**
-
-   * Welcome screen
-   * Collect basic info (age, weight, height, goal)
-   * Set goal type (lose, maintain, gain)
-   * Set activity level
-   * Bedtime & sleep questions
-   * Determine tone (supportive / motivational / analytical)
-   * Generate personalized calorie/macro range
-
-2. **Home Dashboard**
-
-   * Summary of today's:
-
-     * Score (0–10)
-     * Meals (logged/macros)
-     * Steps/sleep/activity
-   * "Write Journal" button (auto-triggered every night)
-   * "Chat with Coach" button for real-time AI conversation
-
-3. **Food Logging**
-
-   * Manual search
-   * Barcode scan
-   * Snap photo of food
-   * Auto-fill calorie/macros (editable)
-
-4. **Daily Journal**
-
-   * Generated by AI
-   * Feedback on food, activity, sleep, score
-   * Positive reinforcement + micro-coaching
-
-5. **AI Chat Coach**
-
-   * Chat-based interface with GPT-4o
-   * Personalized to user goals, tone, and recent habits
-   * Offers:
-
-     * Motivation
-     * Habit-building advice
-     * Emotional support
-     * Encouragement during setbacks
-
-6. **Profile & History**
-
-   * Trends of scores, weight (optional), nutrition
-   * Update profile & preferences
+All values stored nightly into `/dayStats/{date}`.
 
 ---
 
-## 📊 Architecture: MVVM Clean (modular, scalable)
+## 4. Firestore Schema (MVVM‑light‑friendly)
 
-### Layers:
-
-**1. Presentation (SwiftUI)**
-
-* Views: UI pages
-* ViewModels: Connect views with use cases, manage state
-* UI Models: Structs for view rendering
-
-**2. Domain**
-
-* UseCases: Business logic (e.g., CalculateScore, GenerateJournal, ChatWithCoach)
-* Entities: Core data types (User, Meal, Score, JournalEntry)
-* Interfaces: Repository protocols
-
-**3. Data**
-
-* Services: Firebase, OpenAI, HealthKit integrations
-* Repository Implementations: Firestore, API clients
-* Mappers: Convert between API and domain models
-
----
-
-## 🧠 AI Journaling & Coaching Structure (GPT-4o)
-
-### A. Journal Generation Prompt
-
-```plaintext
-User profile:
-- Goal: [Lose weight / Maintain / Gain muscle]
-- Tone: [Supportive / Motivational / Analytical]
-- Daily calorie range: [1,800–2,000 kcal]
-
-Today's data:
-- Calories consumed: 1,920 kcal
-- Protein: 130g | Carb: 190g | Fat: 60g
-- Steps: 8,100
-- Workout: 30 minutes cardio
-- Sleep: 7h 15m | Bedtime: 11:45 PM
-- Water: 2.1L
-- Mood: “A little tired but proud.”
-
-Write a short, encouraging journal entry based on the data above. Include praise, habit reflection, and gentle suggestions.
+```
+users/{uid}                        // profile doc
+└─ meals/{mealId}                  // per meal
+└─ dayStats/{yyyy-MM-dd}           // aggregates + score
+└─ weightLogs/{timestamp}          // weigh‑ins
+└─ weeklyReports/{yyyy-WW}         // phase 2 AI summary
 ```
 
-### B. Chat Coaching Prompt
+(Field definitions identical to previous schema.)
 
-```plaintext
-Act as a daily wellness and motivation coach. The user is on a journey to [Lose Weight / Gain Muscle / Maintain Health] and prefers a [supportive / motivational / analytical] tone.
+Security rule skeleton:
 
-Use their data and goals to give personalized replies to their messages. Be emotionally intelligent, empathetic, and concise. Always aim to motivate or offer small, actionable steps. Do not be robotic.
-
-User Data:
-- Last score: 7.9
-- Mood: “Feeling low today.”
-- Skipped workout
-- Over calorie target
-
-User Message: “I feel like I failed today. I had fast food and skipped my walk.”
-```
-
-**Expected GPT-4o Output**:
-
-> “You didn’t fail. One day doesn’t erase all your progress. What matters is how you respond tomorrow. Can you go for a short 10-minute walk tonight just to reset your momentum? That small step can shift your entire mindset.”
-
----
-
-## 🧾 Firebase Schema Design (Firestore)
-
-### `/users/{uid}`
-
-```json
-{
-  "email": "user@example.com",
-  "goal": "LoseWeight",
-  "tone": "supportive",
-  "height_cm": 175,
-  "weight_kg": 77,
-  "target_weight_kg": 70,
-  "activity_level": "moderate",
-  "bedtime": "23:30",
-  "sleep_hours": 7,
-  "created_at": Timestamp,
-  "subscription_status": "active"
-}
-```
-
-### `/journal_entries/{uid}/{date}`
-
-```json
-{
-  "date": "2025-06-08",
-  "score": 8.6,
-  "entry_text": "AI journal text here...",
-  "calories": 1920,
-  "protein_g": 130,
-  "carbs_g": 190,
-  "fat_g": 60,
-  "steps": 8100,
-  "workout_minutes": 30,
-  "sleep_hours": 7.15,
-  "bedtime": "23:45",
-  "water_liters": 2.1,
-  "mood": "A little tired but proud."
-}
-```
-
-### `/meals/{uid}/{date}/{meal_id}`
-
-```json
-{
-  "name": "Grilled chicken with rice",
-  "photo_url": "https://...",
-  "calories": 520,
-  "protein_g": 45,
-  "carbs_g": 50,
-  "fat_g": 15,
-  "timestamp": Timestamp
+```firestore
+match /users/{userId}/{doc=**} {
+  allow read, write: if request.auth.uid == userId;
 }
 ```
 
 ---
 
-## 🛡 Security & Scalability Best Practices
+## 5. Architecture Roadmap
 
-### 🔐 Security:
+### 5.1 **Phase 1 – MVVM‑light** (current repo state)
 
-* Use **Apple's Sign in with Apple** to comply with App Store rules
-* Store sensitive data (tokens, preferences) securely in **Keychain**
-* Firestore rules:
+```
+Features/
+  Home/ MealLogging/ Progress/ Reports/ Settings/
+Shared/
+  Models/ ViewModels/ Managers/ Services/ Utilities/
+```
 
-  * Restrict access per user UID
-  * Enforce least-privilege data access
-* Use **HTTPS-only** endpoints
-* Sanitize and validate all user inputs before sending to GPT or Firestore
+* ViewModels call `FirebaseService`, `OpenAIService`, `HealthKitService` directly.
+* Dependency Injection via Resolver container (already in repo).
 
-### 📈 Scalability:
+### 5.2 **Phase 2 – Gradual Clean MVVM** (>100 k MAU)
 
-* Use **modular clean architecture** for feature scaling
-* Load nutrition data via **pagination/lazy loading**
-* **Offline-first** Firestore sync for meal logs
-* Batch writes to Firestore to reduce read/write costs
-* Use **Cloud Functions** (optional) to handle future AI caching, heavy processing
-* Optimize HealthKit queries to run in background (non-blocking)
-
----
-
-## 🧑‍💻 Next Steps for Dev Team (Cursor or Solo Dev)
-
-1. Implement folder structure (see MVVM layout in companion doc)
-2. Set up Firebase + RevenueCat
-3. Implement onboarding logic
-4. Build food logging & journaling logic
-5. Build AI chat coach interface + prompt logic
-6. Implement HealthKit sync
-7. Test full AI pipeline (GPT image, journaling, chat)
-8. Deploy to TestFlight for closed beta
+1. Create `Domain/` Swift Package → Entities & UseCases.
+2. Extract ViewModel logic into UseCases.
+3. Convert Services into Repository implementations under `Data/`.
+4. Wire DI (Resolver) to expose `MealRepository`, `SmartSwapUseCase`, etc. No breaking changes to Firestore paths.
 
 ---
 
-Let me know if you want this turned into a Notion doc, PDF, or delivered as a handoff pack with sample code modules and diagrams!
+## 6. Unique AI Features
 
+| Feature                     | Description                                                                                     | GPT prompt footprint                   |
+| --------------------------- | ----------------------------------------------------------------------------------------------- | -------------------------------------- |
+| **Smart Swap (v1)**         | Suggest ≤2 realistic tweaks to any meal so macros fit remaining range.                          |  <120 tokens ≈ \$0.002 per call.       |
+| **Weekly AI Report (v1.5)** | Sunday midnight Cloud Function summarises week, scores habit pillars, suggests next‑week focus. |  Stored in `/weeklyReports/{yyyy‑WW}`. |
+
+Caching: key `mealHash|remainP|remainC|remainF|lang` in local dictionary & Firestore sub‑collection.
+
+---
+
+## 7. Monetisation
+
+* **Subscription product** ID: `nutrigoal.pro`
+* Price tier: *\$19.99/mo*, *\$63.99/yr* (tier mapping auto‑localised).
+* **8‑day free trial** (Apple, RevenueCat).
+  RevenueCat entitlements: `pro_monthly`, `pro_annual`.
+* Paywall displays `package.localizedPriceString` for locale.
+
+---
+
+## 8. Localisation Plan (EN, TR, ES, ZH‑Hans)
+
+1. `Localizable.strings` via SwiftGen; English key names.
+2. Language picker writes `lang` in `/users/{uid}` and UserDefaults.
+3. GPT prompts include `Language: xx` for Smart Swap & Reports.
+4. Date, decimal formatting via `Locale.current`.
+5. App Store screenshots per language.
+
+---
+
+## 9. Coding Style & Cursor Tips
+
+* **Feature folders** keep View, ViewModel, Manager together → minimal file‑hopping.
+* Always create a **protocol** first (`MealLoggingManager`) then let Cursor implement.
+* Use \`\` headers; run SwiftLint.
+* For every Firestore write, add `Task { await analytics.log(...) }` for insight.
+* Cursor commands:
+
+  * `c scaffold feature {Name}`  – fastest way to create boilerplate.
+  * Highlight service call → **“Extract to UseCase”** when refactoring to Clean.
+  * “Create XCTests for *Class*” – auto‑mocks protocols.
+
+---
+
+## 10. Phased Delivery Timeline
+
+| Sprint | Deliverable                                                             |
+| ------ | ----------------------------------------------------------------------- |
+| 1      | Onboarding flow → `/users` doc write; calorie/macro engine unit‑tested. |
+| 2      | MealLogging (photo, gallery, barcode) + OpenAI macro parse.             |
+| 3      | Smart Swap UseCase + cache; Home day dashboard.                         |
+| 4      | Progress graphs; weight & calorie aggregation.                          |
+| 5      | RevenueCat paywall, localisation files, crash + perf SDK.               |
+| 6      | Internal TestFlight beta → iterate.                                     |
+| 7      | Launch (Turkey + English markets) — gather traction.                    |
+| 8      | Add Weekly AI Report & Reports tab; Australia/US marketing.             |
+
+---
+
+**End of document**
