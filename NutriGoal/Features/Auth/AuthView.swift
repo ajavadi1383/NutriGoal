@@ -1,5 +1,4 @@
 import SwiftUI
-import AuthenticationServices
 
 struct AuthView: View {
     @StateObject private var viewModel: AuthViewModel
@@ -14,10 +13,17 @@ struct AuthView: View {
                 Spacer()
                 
                 // Title
-                Text("Welcome Back")
+                Text("Welcome to NutriGoal")
                     .font(NGFont.titleXL)
                     .foregroundColor(.white)
                     .multilineTextAlignment(.center)
+                
+                Text("Sign in or create your account")
+                    .font(NGFont.bodyM)
+                    .foregroundColor(.white.opacity(0.8))
+                    .multilineTextAlignment(.center)
+                
+                Spacer()
                 
                 // Email/Password Form
                 VStack(spacing: NGSize.spacing) {
@@ -26,59 +32,31 @@ struct AuthView: View {
                         .textFieldStyle(HeroTextFieldStyle())
                         .autocapitalization(.none)
                         .keyboardType(.emailAddress)
+                        .disabled(viewModel.isLoading)
                     
                     // Password field
                     SecureField("Password", text: $viewModel.password)
                         .textFieldStyle(HeroTextFieldStyle())
+                        .disabled(viewModel.isLoading)
                     
-                    // Email Auth Buttons
-                    HStack(spacing: NGSize.spacing) {
-                        PrimaryButton(title: "Sign In") {
-                            Task {
-                                await viewModel.signInTapped()
-                            }
-                        }
-                        .disabled(!viewModel.isFormValid || viewModel.isLoading)
-                        
-                        PrimaryButton(title: "Sign Up") {
+                    // Auth Buttons
+                    VStack(spacing: NGSize.spacing / 2) {
+                        PrimaryButton(title: viewModel.isLoading ? "Processing..." : "Sign Up") {
                             Task {
                                 await viewModel.signUpTapped()
                             }
                         }
                         .disabled(!viewModel.isFormValid || viewModel.isLoading)
-                    }
-                }
-                
-                // Divider
-                HStack {
-                    Rectangle()
-                        .fill(Color.white.opacity(0.3))
-                        .frame(height: 1)
-                    
-                    Text("or")
-                        .foregroundColor(.white.opacity(0.7))
-                        .font(NGFont.bodyM)
-                    
-                    Rectangle()
-                        .fill(Color.white.opacity(0.3))
-                        .frame(height: 1)
-                }
-                .padding(.vertical, NGSize.spacing)
-                
-                // Apple Sign-In
-                SignInWithAppleButton(
-                    onRequest: { request in
-                        // Configure the request if needed
-                    },
-                    onCompletion: { result in
-                        Task {
-                            await viewModel.appleTapped()
+                        
+                        PrimaryButton(title: viewModel.isLoading ? "Processing..." : "Sign In") {
+                            Task {
+                                await viewModel.signInTapped()
+                            }
                         }
+                        .disabled(!viewModel.isFormValid || viewModel.isLoading)
+                        .buttonStyle(SecondaryButtonStyle())
                     }
-                )
-                .signInWithAppleButtonStyle(.white)
-                .frame(height: 48)
-                .cornerRadius(NGSize.corner)
+                }
                 
                 Spacer()
                 
@@ -88,6 +66,7 @@ struct AuthView: View {
                 }
                 .foregroundColor(.white.opacity(0.7))
                 .font(NGFont.bodyM)
+                .disabled(viewModel.isLoading)
                 
                 Spacer()
             }
@@ -96,12 +75,26 @@ struct AuthView: View {
         .overlay(
             Group {
                 if viewModel.isLoading {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                        .scaleEffect(1.2)
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+                    
+                    VStack(spacing: NGSize.spacing) {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .scaleEffect(1.2)
+                        
+                        Text(viewModel.loadingMessage)
+                            .foregroundColor(.white)
+                            .font(NGFont.bodyM)
+                    }
                 }
             }
         )
+        .alert("Authentication", isPresented: $viewModel.showAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(viewModel.alertMessage)
+        }
     }
 }
 
@@ -117,6 +110,21 @@ struct HeroTextFieldStyle: TextFieldStyle {
                 RoundedRectangle(cornerRadius: NGSize.corner)
                     .stroke(Color.white.opacity(0.3), lineWidth: 1)
             )
+    }
+}
+
+// MARK: - Secondary Button Style  
+struct SecondaryButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .background(Color.white.opacity(0.2))
+            .foregroundColor(.white)
+            .cornerRadius(NGSize.corner)
+            .overlay(
+                RoundedRectangle(cornerRadius: NGSize.corner)
+                    .stroke(Color.white.opacity(0.3), lineWidth: 1)
+            )
+            .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
     }
 }
 

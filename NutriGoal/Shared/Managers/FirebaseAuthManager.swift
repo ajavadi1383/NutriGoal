@@ -2,6 +2,11 @@ import Foundation
 import FirebaseAuth
 
 final class FirebaseAuthManager: AuthManager, ObservableObject {
+    func signInAnonymously() async throws {
+        return
+    }
+    
+    
     
     @Published private(set) var currentUID: String?
     
@@ -37,30 +42,11 @@ final class FirebaseAuthManager: AuthManager, ObservableObject {
         }
     }
     
-    func signInAnonymously() async throws {
-        do {
-            let result = try await Auth.auth().signInAnonymously()
-            guard !result.user.uid.isEmpty else {
-                throw AuthError.anonymousSignInFailed
-            }
-            // currentUID will be automatically updated via state listener
-        } catch {
-            print("❌ [\(#function)] \(error.localizedDescription)")
-            throw error
-        }
-    }
-    
     func signOut() throws {
         try Auth.auth().signOut()
         // currentUID will be automatically updated via state listener
     }
 }
-
-enum AuthError: Error {
-    case anonymousSignInFailed
-    case signOutFailed
-}
-
 // MARK: - Resolver Registration
 /*
  Paste this into your DI container file:

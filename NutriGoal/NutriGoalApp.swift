@@ -37,7 +37,7 @@ struct ContentView: View {
                 OnboardingView()
                     .environmentObject(router)
             case .home:
-                HomeView()
+                HomeView(router: router)
             }
         }
         .onAppear {
@@ -61,6 +61,8 @@ struct ContentView: View {
 }
 
 struct HomeView: View {
+    let router: AppRouter
+    
     var body: some View {
         HeroBaseView {
             VStack(spacing: NGSize.spacing * 2) {
@@ -76,14 +78,60 @@ struct HomeView: View {
                     .foregroundColor(.white.opacity(0.8))
                     .multilineTextAlignment(.center)
                 
+                // User Status
+                VStack(spacing: NGSize.spacing / 2) {
+                    if let email = getCurrentUserEmail() {
+                        Text("Signed in as:")
+                            .font(NGFont.bodyS)
+                            .foregroundColor(.white.opacity(0.6))
+                        
+                        Text(email)
+                            .font(NGFont.bodyM)
+                            .foregroundColor(.white)
+                            .fontWeight(.medium)
+                    } else {
+                        Text("Not signed in")
+                            .font(NGFont.bodyM)
+                            .foregroundColor(.white.opacity(0.7))
+                    }
+                }
+                
                 Spacer()
                 
-                PrimaryButton(title: "Continue") {
-                    // TODO: Navigate to main app
-                    print("🏠 Home: Continue tapped")
+                // Action Buttons
+                VStack(spacing: NGSize.spacing) {
+                    PrimaryButton(title: "Continue to App") {
+                        print("🏠 HomeView: Continue to App tapped")
+                        router.to(.onboarding) // Navigate to main app flow
+                    }
+                    
+                    if getCurrentUserEmail() != nil {
+                        PrimaryButton(title: "Sign Out") {
+                            signOut(router: router)
+                        }
+                        .buttonStyle(SecondaryButtonStyle())
+                    } else {
+                        PrimaryButton(title: "Sign In") {
+                            router.to(.auth)
+                        }
+                        .buttonStyle(SecondaryButtonStyle())
+                    }
                 }
+                
+                Spacer()
             }
             .padding()
         }
+    }
+    
+    private func getCurrentUserEmail() -> String? {
+        // TODO: Get from Firebase Auth
+        return nil // For now, will be implemented with Firebase Auth integration
+    }
+    
+    private func signOut(router: AppRouter) {
+        print("🔓 HomeView: Sign out tapped")
+        // TODO: Implement sign out with Firebase Auth
+        router.to(.hero)
     }
 }

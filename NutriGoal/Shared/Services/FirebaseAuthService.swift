@@ -6,8 +6,8 @@ import UIKit
 protocol FirebaseAuthService {
     func createUser(email: String, password: String) async throws -> AuthDataResult
     func signIn(email: String, password: String) async throws -> AuthDataResult
-    func signInWithApple() async throws -> AuthDataResult
     func signOut() throws
+    func getCurrentUser() -> User?
 }
 
 // MARK: - Firebase Auth Service Implementation
@@ -38,19 +38,6 @@ final class FirebaseAuthServiceImpl: FirebaseAuthService {
         }
     }
     
-    func signInWithApple() async throws -> AuthDataResult {
-        print("🔐 [FirebaseAuthService] Starting Apple sign-in")
-        do {
-            let credential = try await AppleSignInHelper.signIn()
-            let result = try await Auth.auth().signIn(with: credential)
-            print("✅ [FirebaseAuthService] Apple sign-in successful: \(result.user.uid)")
-            return result
-        } catch {
-            print("❌ [FirebaseAuthService] Apple sign-in failed: \(error)")
-            throw error
-        }
-    }
-    
     func signOut() throws {
         print("🔐 [FirebaseAuthService] Signing out")
         do {
@@ -60,6 +47,10 @@ final class FirebaseAuthServiceImpl: FirebaseAuthService {
             print("❌ [FirebaseAuthService] Sign out failed: \(error)")
             throw error
         }
+    }
+    
+    func getCurrentUser() -> User? {
+        return Auth.auth().currentUser
     }
 }
 
