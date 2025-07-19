@@ -2,6 +2,7 @@ import SwiftUI
 
 enum AppRoute {
     case hero
+    case auth
     case onboarding
     case home
 }
