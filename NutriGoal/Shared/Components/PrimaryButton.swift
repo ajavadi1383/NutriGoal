@@ -13,13 +13,13 @@ struct PrimaryButton: View {
     var body: some View {
         Button(action: action) {
             Text(title)
-                .font(.headline)
+                .font(NGFont.labelM)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
-                .frame(height: 48)
-                .background(Color.accentColor)
-                .cornerRadius(12)
+                .frame(height: NGSize.buttonHeight)
+                .background(NGColor.primary)
+                .cornerRadius(NGSize.cornerRadius)
         }
     }
 }
