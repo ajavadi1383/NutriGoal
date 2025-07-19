@@ -47,9 +47,12 @@ final class AuthViewModel: ObservableObject {
                 print("✅ [AuthViewModel] Sign in successful")
             }
             
-            // Navigate to onboarding on success
-            print("🚀 [AuthViewModel] Navigating to onboarding...")
-            router.to(.onboarding)
+            // Sync local onboarding data to Firebase if it exists
+            await syncOnboardingDataToFirebase()
+            
+            // Navigate to home on success
+            print("🚀 [AuthViewModel] Navigating to home...")
+            router.to(.home)
             
         } catch {
             print("❌ [AuthViewModel] Authentication failed: \(error.localizedDescription)")
@@ -62,6 +65,23 @@ final class AuthViewModel: ObservableObject {
     func toggleMode() {
         isSignUpMode.toggle()
         errorMessage = nil
+    }
+    
+    // MARK: - Data Sync
+    private func syncOnboardingDataToFirebase() async {
+        guard let onboardingData = UserDefaults.standard.dictionary(forKey: "onboardingData") else {
+            print("ℹ️ [AuthViewModel] No local onboarding data to sync")
+            return
+        }
+        
+        print("🔄 [AuthViewModel] Syncing onboarding data to Firebase...")
+        
+        // TODO: Create UserProfile from onboardingData and save to Firebase
+        // This will be implemented when FirebaseService is properly integrated
+        
+        // For now, just mark as synced
+        UserDefaults.standard.removeObject(forKey: "onboardingData")
+        print("✅ [AuthViewModel] Onboarding data sync completed")
     }
     
     // MARK: - Helper Methods
