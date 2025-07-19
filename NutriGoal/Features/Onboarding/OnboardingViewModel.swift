@@ -1,11 +1,6 @@
 import Foundation
 import SwiftUI
 
-// TODO: Define FirebaseService protocol
-protocol FirebaseService {
-    func save(profile: UserProfile) async throws
-}
-
 @MainActor
 final class OnboardingViewModel: ObservableObject {
     
