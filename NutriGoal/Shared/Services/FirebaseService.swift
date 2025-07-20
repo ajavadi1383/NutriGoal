@@ -4,6 +4,7 @@ import FirebaseAuth
 
 protocol FirebaseService {
     func save(profile: UserProfile) async throws
+    func deleteUserData(uid: String) async throws
 }
 
 final class FirebaseServiceImpl: FirebaseService {
@@ -35,11 +36,43 @@ final class FirebaseServiceImpl: FirebaseService {
             throw error
         }
     }
+    
+    func deleteUserData(uid: String) async throws {
+        print("🗑️ [FirebaseService] Deleting all user data for uid: \(uid)")
+        
+        do {
+            // Delete main user document
+            let userRef = db.collection("users").document(uid)
+            
+            // Delete all subcollections
+            let collections = ["meals", "dayStats", "weightLogs", "weeklyReports", "chat_messages"]
+            
+            for collectionName in collections {
+                print("🗑️ [FirebaseService] Deleting \(collectionName) subcollection")
+                let subcollectionRef = userRef.collection(collectionName)
+                let documents = try await subcollectionRef.getDocuments()
+                
+                // Delete all documents in subcollection
+                for document in documents.documents {
+                    try await document.reference.delete()
+                }
+            }
+            
+            // Finally delete the main user document
+            try await userRef.delete()
+            print("✅ [FirebaseService] All user data deleted successfully")
+            
+        } catch {
+            print("❌ [FirebaseService] Delete user data failed: \(error)")
+            throw error
+        }
+    }
 }
 
 enum FirebaseServiceError: Error {
     case noAuthenticatedUser
     case saveFailed
+    case deleteFailed
 }
 
 // Resolver.register { FirebaseServiceImpl() as FirebaseService } 

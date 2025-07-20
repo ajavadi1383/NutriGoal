@@ -185,7 +185,7 @@ struct DashboardView: View {
                     // Header
                     VStack(spacing: NGSize.spacing / 2) {
                         Text("Today's Progress")
-                            .font(NGFont.titleL)
+                            .font(NGFont.titleXL)
                             .foregroundColor(.white)
                         
                         Text(Date().formatted(date: .abbreviated, time: .omitted))
@@ -209,7 +209,7 @@ struct DashboardView: View {
                     VStack(alignment: .leading, spacing: NGSize.spacing) {
                         HStack {
                             Text("Today's Meals")
-                                .font(NGFont.titleM)
+                                .font(NGFont.titleXL)
                                 .foregroundColor(.white)
                             
                             Spacer()
@@ -257,16 +257,16 @@ struct DashboardCard: View {
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(NGFont.bodyS)
+                    .font(NGFont.bodyM)
                     .foregroundColor(.white.opacity(0.7))
                 
                 Text(value)
-                    .font(NGFont.titleM)
+                    .font(NGFont.titleXL)
                     .foregroundColor(.white)
                     .fontWeight(.bold)
                 
                 Text("of \(target)")
-                    .font(NGFont.bodyXS)
+                    .font(NGFont.bodyM)
                     .foregroundColor(.white.opacity(0.5))
             }
             
@@ -294,7 +294,7 @@ struct MealCard: View {
                     .fontWeight(.medium)
                 
                 Text(time)
-                    .font(NGFont.bodyS)
+                    .font(NGFont.bodyM)
                     .foregroundColor(.white.opacity(0.6))
             }
             
@@ -310,7 +310,7 @@ struct MealCard: View {
                     // TODO: View meal details
                 }
                 .foregroundColor(NGColor.primary)
-                .font(NGFont.bodyS)
+                .font(NGFont.bodyM)
             }
         }
         .padding()
@@ -331,7 +331,7 @@ struct AddMealCard: View {
                     .foregroundColor(.white.opacity(0.7))
                 
                 Text("Tap to add")
-                    .font(NGFont.bodyS)
+                    .font(NGFont.bodyM)
                     .foregroundColor(.white.opacity(0.5))
             }
             
@@ -389,6 +389,12 @@ struct ProgressView: View {
 
 struct SettingsView: View {
     let router: AppRouter
+    @State private var showDeleteAccountAlert = false
+    @State private var showDeleteConfirmationAlert = false
+    @State private var isDeleting = false
+    
+    private let authService = FirebaseAuthServiceImpl()
+    private let firebaseService = FirebaseServiceImpl()
     
     var body: some View {
         HeroBaseView {
@@ -413,11 +419,51 @@ struct SettingsView: View {
                     SettingsRow(title: "Sign Out", icon: "rectangle.portrait.and.arrow.right", isDestructive: true) {
                         signOut(router: router)
                     }
+                    
+                    SettingsRow(title: "Delete Account", icon: "trash.fill", isDestructive: true) {
+                        showDeleteAccountAlert = true
+                    }
                 }
                 
                 Spacer()
             }
             .padding()
+        }
+        .overlay(
+            Group {
+                if isDeleting {
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+                    
+                    VStack(spacing: NGSize.spacing) {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .scaleEffect(1.2)
+                        
+                        Text("Deleting account...")
+                            .foregroundColor(.white)
+                            .font(NGFont.bodyM)
+                    }
+                }
+            }
+        )
+        .alert("Delete Account", isPresented: $showDeleteAccountAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
+                showDeleteConfirmationAlert = true
+            }
+        } message: {
+            Text("Are you sure you want to delete your account? This action cannot be undone.")
+        }
+        .alert("Final Confirmation", isPresented: $showDeleteConfirmationAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete Forever", role: .destructive) {
+                Task {
+                    await deleteAccount()
+                }
+            }
+        } message: {
+            Text("This will permanently delete your account and all your data. This action cannot be undone.")
         }
     }
     
@@ -428,6 +474,35 @@ struct SettingsView: View {
         } catch {
             print("❌ Sign out failed: \(error)")
         }
+    }
+    
+    private func deleteAccount() async {
+        guard let currentUser = authService.getCurrentUser() else {
+            print("❌ No current user to delete")
+            return
+        }
+        
+        isDeleting = true
+        let uid = currentUser.uid
+        
+        do {
+            // First delete all Firestore data
+            try await firebaseService.deleteUserData(uid: uid)
+            print("✅ User data deleted from Firestore")
+            
+            // Then delete the authentication user
+            try await authService.deleteCurrentUser()
+            print("✅ User deleted from Firebase Auth")
+            
+            // Navigate back to hero
+            router.to(.hero)
+            
+        } catch {
+            print("❌ Delete account failed: \(error)")
+            // TODO: Show error alert to user
+        }
+        
+        isDeleting = false
     }
 }
 

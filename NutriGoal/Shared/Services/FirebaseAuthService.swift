@@ -8,6 +8,7 @@ protocol FirebaseAuthService {
     func signIn(email: String, password: String) async throws -> AuthDataResult
     func signOut() throws
     func getCurrentUser() -> User?
+    func deleteCurrentUser() async throws
 }
 
 // MARK: - Firebase Auth Service Implementation
@@ -51,6 +52,33 @@ final class FirebaseAuthServiceImpl: FirebaseAuthService {
     
     func getCurrentUser() -> User? {
         return Auth.auth().currentUser
+    }
+    
+    func deleteCurrentUser() async throws {
+        print("🗑️ [FirebaseAuthService] Deleting current user")
+        guard let user = Auth.auth().currentUser else {
+            throw FirebaseAuthError.noCurrentUser
+        }
+        
+        do {
+            try await user.delete()
+            print("✅ [FirebaseAuthService] User deleted successfully")
+        } catch {
+            print("❌ [FirebaseAuthService] Delete user failed: \(error)")
+            throw error
+        }
+    }
+}
+
+// MARK: - Firebase Auth Errors
+enum FirebaseAuthError: LocalizedError {
+    case noCurrentUser
+    
+    var errorDescription: String? {
+        switch self {
+        case .noCurrentUser:
+            return "No authenticated user found"
+        }
     }
 }
 
