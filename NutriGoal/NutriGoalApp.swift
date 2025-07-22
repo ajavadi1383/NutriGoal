@@ -148,16 +148,10 @@ struct MainAppView: View {
     
     var body: some View {
         TabView {
-            DashboardView()
+            HomeDashboardView()
                 .tabItem {
                     Image(systemName: "house.fill")
                     Text("Home")
-                }
-            
-            MealLoggingView()
-                .tabItem {
-                    Image(systemName: "fork.knife")
-                    Text("Meals")
                 }
             
             ProgressView()
