@@ -233,46 +233,6 @@ struct DashboardView: View {
     }
 }
 
-// MARK: - Dashboard Card Component
-struct DashboardCard: View {
-    let title: String
-    let value: String
-    let target: String
-    let icon: String
-    
-    var body: some View {
-        VStack(spacing: NGSize.spacing / 2) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundColor(NGColor.primary)
-                
-                Spacer()
-            }
-            
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(NGFont.bodyM)
-                    .foregroundColor(.white.opacity(0.7))
-                
-                Text(value)
-                    .font(NGFont.titleXL)
-                    .foregroundColor(.white)
-                    .fontWeight(.bold)
-                
-                Text("of \(target)")
-                    .font(NGFont.bodyM)
-                    .foregroundColor(.white.opacity(0.5))
-            }
-            
-            Spacer()
-        }
-        .padding()
-        .background(Color.white.opacity(0.1))
-        .cornerRadius(NGSize.corner)
-        .frame(height: 100)
-    }
-}
-
 // MARK: - Meal Card Component
 struct MealCard: View {
     let mealType: String
@@ -349,21 +309,7 @@ struct AddMealCard: View {
 }
 
 // MARK: - Placeholder Views
-struct MealLoggingView: View {
-    var body: some View {
-        HeroBaseView {
-            VStack {
-                Text("Meal Logging")
-                    .font(NGFont.titleXL)
-                    .foregroundColor(.white)
-                
-                Text("Coming Soon...")
-                    .font(NGFont.bodyM)
-                    .foregroundColor(.white.opacity(0.8))
-            }
-        }
-    }
-}
+
 
 struct ProgressView: View {
     var body: some View {

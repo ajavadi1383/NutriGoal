@@ -88,47 +88,46 @@ final class FirebaseServiceImpl: FirebaseService {
         
         // Get existing stats or create new
         let document = try await dayStatsRef.getDocument()
-        var currentStats = try? document.data(as: DayStats.self)
+        let currentStats = try? document.data(as: DayStats.self)
         
-        if currentStats == nil {
-            currentStats = DayStats(
-                id: dateString,
-                date: dateString,
-                caloriesTotal: 0,
-                proteinTotal: 0,
-                carbsTotal: 0,
-                fatTotal: 0,
-                steps: 0,
-                workoutMin: 0,
-                waterMl: 0,
-                sleepMin: 0,
-                bedtime: "22:00",
-                score: 0.0
-            )
-        }
+        // Calculate new totals (add meal to existing or start from 0)
+        let newCaloriesTotal = (currentStats?.caloriesTotal ?? 0) + meal.calories
+        let newProteinTotal = (currentStats?.proteinTotal ?? 0) + meal.proteinG
+        let newCarbsTotal = (currentStats?.carbsTotal ?? 0) + meal.carbsG
+        let newFatTotal = (currentStats?.fatTotal ?? 0) + meal.fatG
         
-        // Add meal to totals
-        currentStats!.caloriesTotal += meal.calories
-        currentStats!.proteinTotal += meal.proteinG
-        currentStats!.carbsTotal += meal.carbsG
-        currentStats!.fatTotal += meal.fatG
+        // Create updated stats object
+        let updatedStats = DayStats(
+            id: dateString,
+            date: dateString,
+            caloriesTotal: newCaloriesTotal,
+            proteinTotal: newProteinTotal,
+            carbsTotal: newCarbsTotal,
+            fatTotal: newFatTotal,
+            steps: currentStats?.steps ?? 0,
+            workoutMin: currentStats?.workoutMin ?? 0,
+            waterMl: currentStats?.waterMl ?? 0,
+            sleepMin: currentStats?.sleepMin ?? 0,
+            bedtime: currentStats?.bedtime ?? "22:00",
+            score: currentStats?.score ?? 0.0
+        )
         
         // Save updated stats
         try await dayStatsRef.setData([
-            "date": currentStats!.date,
-            "caloriesTotal": currentStats!.caloriesTotal,
-            "proteinTotal": currentStats!.proteinTotal,
-            "carbsTotal": currentStats!.carbsTotal,
-            "fatTotal": currentStats!.fatTotal,
-            "steps": currentStats!.steps,
-            "workoutMin": currentStats!.workoutMin,
-            "waterMl": currentStats!.waterMl,
-            "sleepMin": currentStats!.sleepMin,
-            "bedtime": currentStats!.bedtime,
-            "score": currentStats!.score
+            "date": updatedStats.date,
+            "caloriesTotal": updatedStats.caloriesTotal,
+            "proteinTotal": updatedStats.proteinTotal,
+            "carbsTotal": updatedStats.carbsTotal,
+            "fatTotal": updatedStats.fatTotal,
+            "steps": updatedStats.steps,
+            "workoutMin": updatedStats.workoutMin,
+            "waterMl": updatedStats.waterMl,
+            "sleepMin": updatedStats.sleepMin,
+            "bedtime": updatedStats.bedtime,
+            "score": updatedStats.score
         ])
         
-        print("✅ [FirebaseService] Day stats updated for \(dateString)")
+        print("✅ [FirebaseService] Day stats updated for \(dateString): +\(meal.calories) cal, +\(meal.proteinG)g protein")
     }
     
     func fetchMeals(for date: Date) async throws -> [Meal] {
