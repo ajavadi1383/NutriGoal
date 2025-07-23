@@ -18,6 +18,8 @@ final class MealLoggingViewModel: ObservableObject {
     @Published var carbsText = ""
     @Published var fatText = ""
     @Published var isSaving = false
+    @Published var isRecognizing = false
+    @Published var recognitionComplete = false
     
     // MARK: - Computed Properties
     private var calories: Int { Int(caloriesText) ?? 0 }
@@ -27,7 +29,7 @@ final class MealLoggingViewModel: ObservableObject {
     
     // MARK: - Init
     init(
-        foodService: FoodRecognitionService = FoodRecognitionServiceStub(),
+        foodService: FoodRecognitionService = FoodRecognitionServiceImpl(), // Using real OpenAI service
         firebaseService: FirebaseService = FirebaseServiceImpl()
     ) {
         self.foodService = foodService
@@ -53,7 +55,11 @@ final class MealLoggingViewModel: ObservableObject {
     func recognise() async {
         guard let image = selectedImage else { return }
         
+        isRecognizing = true
+        recognitionComplete = false
+        
         do {
+            print("🤖 [MealLoggingViewModel] Starting AI food recognition...")
             let result = try await foodService.recognise(image: image)
             
             // Fill form fields with recognition results
@@ -63,10 +69,14 @@ final class MealLoggingViewModel: ObservableObject {
             carbsText = String(result.carbs)
             fatText = String(result.fat)
             
-            print("✅ [MealLoggingViewModel] Food recognised: \(result.name)")
+            recognitionComplete = true
+            print("✅ [MealLoggingViewModel] AI recognized: \(result.name) - \(result.calories) cal")
         } catch {
-            print("❌ [MealLoggingViewModel] Food recognition failed: \(error)")
+            print("❌ [MealLoggingViewModel] AI food recognition failed: \(error)")
+            // Don't clear fields on error - user can still enter manually
         }
+        
+        isRecognizing = false
     }
     
     // MARK: - Save Meal
