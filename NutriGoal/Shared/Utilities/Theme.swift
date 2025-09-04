@@ -12,18 +12,29 @@ enum NGColor {
     static let gray4 = Color(hex: "#CED4DA")
     static let gray5 = Color(hex: "#6C757D")
     static let gray6 = Color(hex: "#495057")
+    
+    // Additional colors for Cal AI style
+    static let background = Color(hex: "#FFFFFF")
+    static let cardBackground = Color(hex: "#F5F5F5")
+    static let accent = Color(hex: "#FF6B6B")
 }
 
 /// Typography system
 enum NGFont {
     static let titleXL = Font.system(size: 32, weight: .bold)
+    static let titleL = Font.system(size: 28, weight: .bold)
+    static let titleM = Font.system(size: 24, weight: .semibold)
     static let bodyM = Font.system(size: 16, weight: .regular)
+    static let bodyS = Font.system(size: 14, weight: .regular)
+    static let bodyXS = Font.system(size: 12, weight: .regular)
+    static let caption = Font.system(size: 11, weight: .medium)
 }
 
 /// Spacing and sizing constants
 enum NGSize {
     static let corner: CGFloat = 12
     static let spacing: CGFloat = 16
+    static let cardSpacing: CGFloat = 8
 }
 
 // MARK: - Color Extension
@@ -54,4 +65,4 @@ extension Color {
             opacity: Double(a) / 255
         )
     }
-} 
+}

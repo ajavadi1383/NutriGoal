@@ -319,4 +319,4 @@ struct HeroSelectionButtonStyle: ButtonStyle {
 
 #Preview {
     OnboardingView()
-} 
+}
