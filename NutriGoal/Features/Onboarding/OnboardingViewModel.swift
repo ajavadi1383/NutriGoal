@@ -96,20 +96,24 @@ final class OnboardingViewModel: ObservableObject {
     
     // MARK: - HealthKit
     func requestHealthKitPermissions() async {
-        do {
-            let granted = try await healthKitService.requestPermissions()
-            await MainActor.run {
-                healthKitPermissionGranted = granted
-                if granted {
-                    print("✅ [OnboardingViewModel] HealthKit permissions granted")
-                } else {
-                    print("⚠️ [OnboardingViewModel] HealthKit permissions denied")
+        await MainActor.run {
+            Task {
+                do {
+                    let granted = try await healthKitService.requestPermissions()
+                    await MainActor.run {
+                        healthKitPermissionGranted = granted
+                        if granted {
+                            print("✅ [OnboardingViewModel] HealthKit permissions granted")
+                        } else {
+                            print("⚠️ [OnboardingViewModel] HealthKit permissions denied")
+                        }
+                    }
+                } catch {
+                    print("❌ [OnboardingViewModel] HealthKit permission request failed: \(error)")
+                    await MainActor.run {
+                        healthKitPermissionGranted = false
+                    }
                 }
-            }
-        } catch {
-            print("❌ [OnboardingViewModel] HealthKit permission request failed: \(error)")
-            await MainActor.run {
-                healthKitPermissionGranted = false
             }
         }
     }

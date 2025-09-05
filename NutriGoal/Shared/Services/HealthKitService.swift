@@ -35,13 +35,15 @@ final class HealthKitServiceImpl: HealthKitService {
         }
         
         return try await withCheckedThrowingContinuation { continuation in
-            healthStore.requestAuthorization(toShare: [], read: readTypes) { success, error in
-                if let error = error {
-                    print("❌ [HealthKitService] Permission request failed: \(error)")
-                    continuation.resume(throwing: error)
-                } else {
-                    print("✅ [HealthKitService] Permissions granted: \(success)")
-                    continuation.resume(returning: success)
+            DispatchQueue.main.async {
+                self.healthStore.requestAuthorization(toShare: [], read: self.readTypes) { success, error in
+                    if let error = error {
+                        print("❌ [HealthKitService] Permission request failed: \(error)")
+                        continuation.resume(throwing: error)
+                    } else {
+                        print("✅ [HealthKitService] Permissions granted: \(success)")
+                        continuation.resume(returning: success)
+                    }
                 }
             }
         }
