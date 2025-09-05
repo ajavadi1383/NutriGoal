@@ -71,7 +71,7 @@ struct HomeDashboardView: View {
                                 consumed: viewModel.caloriesConsumed,
                                 target: viewModel.caloriesTarget,
                                 steps: viewModel.steps,
-                                targetSteps: viewModel.stepsTarget
+                                caloriesBurned: viewModel.caloriesBurned
                             )
                             .padding(.vertical)
                             
@@ -243,7 +243,7 @@ struct CalorieProgressRing: View {
     let consumed: Int
     let target: Int
     let steps: Int
-    let targetSteps: Int
+    let caloriesBurned: Double
     
     private var progress: Double {
         Double(consumed) / Double(target)
@@ -281,8 +281,8 @@ struct CalorieProgressRing: View {
                 HStack {
                     Spacer()
                     VStack(alignment: .leading, spacing: 4) {
-                        StatBadge(icon: "figure.walk", value: "\(viewModel.steps)", label: "Steps")
-                        StatBadge(icon: "dumbbell.fill", value: "\(Int(viewModel.caloriesBurned))", label: "Cal burned")
+                        StatBadge(icon: "figure.walk", value: "\(steps)", label: "Steps")
+                        StatBadge(icon: "dumbbell.fill", value: "\(Int(caloriesBurned))", label: "Cal burned")
                     }
                     .padding(.leading, 140)
                 }
