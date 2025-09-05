@@ -9,7 +9,7 @@ struct OnboardingView: View {
             VStack {
                 // Progress indicator with white styling
                 HStack {
-                    ForEach(0..<9, id: \.self) { index in
+                    ForEach(0..<10, id: \.self) { index in
                         Rectangle()
                             .fill(index <= viewModel.page ? .white : Color.white.opacity(0.3))
                             .frame(height: 4)
@@ -25,7 +25,7 @@ struct OnboardingView: View {
                         title: "When were you born?",
                         isValid: true,
                         pageNumber: 0,
-                        totalPages: 9
+                        totalPages: 10
                     ) {
                         DatePicker("Birth Date", selection: $viewModel.birthDate, displayedComponents: .date)
                             .datePickerStyle(.wheel)
@@ -39,7 +39,7 @@ struct OnboardingView: View {
                         title: "What's your sex?",
                         isValid: !viewModel.sex.isEmpty,
                         pageNumber: 1,
-                        totalPages: 9
+                        totalPages: 10
                     ) {
                         VStack(spacing: NGSize.spacing) {
                             Button("Male") {
@@ -60,7 +60,7 @@ struct OnboardingView: View {
                         title: "How tall are you?",
                         isValid: viewModel.heightCm > 0,
                         pageNumber: 2,
-                        totalPages: 9
+                        totalPages: 10
                     ) {
                         VStack {
                             Text("\(viewModel.heightCm) cm")
@@ -81,7 +81,7 @@ struct OnboardingView: View {
                         title: "What's your weight?",
                         isValid: viewModel.weightKg > 0,
                         pageNumber: 3,
-                        totalPages: 9
+                        totalPages: 10
                     ) {
                         VStack {
                             Text(String(format: "%.1f kg", viewModel.weightKg))
@@ -99,7 +99,7 @@ struct OnboardingView: View {
                         title: "How active are you?",
                         isValid: !viewModel.activityLevel.isEmpty,
                         pageNumber: 4,
-                        totalPages: 9
+                        totalPages: 10
                     ) {
                         VStack(spacing: NGSize.spacing) {
                             Button("1-2 days/week") {
@@ -125,7 +125,7 @@ struct OnboardingView: View {
                         title: "What's your goal?",
                         isValid: !viewModel.target.isEmpty,
                         pageNumber: 5,
-                        totalPages: 9
+                        totalPages: 10
                     ) {
                         VStack(spacing: NGSize.spacing) {
                             Button("Lose weight") {
@@ -151,7 +151,7 @@ struct OnboardingView: View {
                         title: "Weekly pace goal?",
                         isValid: viewModel.weeklyPaceKg >= 0,
                         pageNumber: 6,
-                        totalPages: 9
+                        totalPages: 10
                     ) {
                         VStack {
                             Text(String(format: "%.1f kg/week", viewModel.weeklyPaceKg))
@@ -169,7 +169,7 @@ struct OnboardingView: View {
                         title: "Any dietary preferences?",
                         isValid: !viewModel.dietType.isEmpty,
                         pageNumber: 7,
-                        totalPages: 9
+                        totalPages: 10
                     ) {
                         VStack(spacing: NGSize.spacing) {
                             Button("None") {
@@ -195,13 +195,13 @@ struct OnboardingView: View {
                     }
                     .tag(7)
                     
-                    // Page 8: Language (Final)
+                    // Page 8: Language
                     OnboardingPageView(
                         title: "Choose your language",
                         isValid: !viewModel.lang.isEmpty,
                         pageNumber: 8,
-                        totalPages: 9,
-                        isLastPage: true
+                        totalPages: 10,
+                        isLastPage: false
                     ) {
                         VStack(spacing: NGSize.spacing) {
                             Button("English") {
@@ -221,6 +221,70 @@ struct OnboardingView: View {
                         }
                     }
                     .tag(8)
+                    
+                    // Page 9: HealthKit Permissions (Final)
+                    OnboardingPageView(
+                        title: "Connect to Apple Health",
+                        isValid: true, // Always allow to proceed
+                        pageNumber: 9,
+                        totalPages: 10,
+                        isLastPage: true
+                    ) {
+                        VStack(spacing: 24) {
+                            // Subtitle
+                            Text("We'll sync your steps, workouts, and health data for better tracking")
+                                .font(.body)
+                                .foregroundColor(.white.opacity(0.8))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                            
+                            // Health benefits
+                            VStack(spacing: 16) {
+                                HealthBenefitRow(icon: "figure.walk", title: "Steps & Activity", description: "Track your daily movement automatically")
+                                HealthBenefitRow(icon: "flame.fill", title: "Calories Burned", description: "See real workout data from Apple Watch")
+                                HealthBenefitRow(icon: "bed.double.fill", title: "Sleep & Recovery", description: "Monitor rest for better performance")
+                            }
+                            
+                            Spacer()
+                            
+                            // Permission status
+                            if viewModel.healthKitPermissionGranted {
+                                HStack {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(.green)
+                                    Text("Connected to Apple Health")
+                                        .foregroundColor(.white)
+                                }
+                                .padding()
+                                .background(Color.green.opacity(0.2))
+                                .cornerRadius(12)
+                            } else {
+                                Button(action: {
+                                    Task {
+                                        await viewModel.requestHealthKitPermissions()
+                                    }
+                                }) {
+                                    HStack {
+                                        Image(systemName: "heart.fill")
+                                        Text("Connect to Apple Health")
+                                    }
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .frame(maxWidth: .infinity)
+                                    .background(Color.red)
+                                    .cornerRadius(12)
+                                }
+                            }
+                            
+                            // Skip option
+                            Button("Skip for now") {
+                                // Allow users to skip HealthKit
+                            }
+                            .foregroundColor(.white.opacity(0.7))
+                            .font(.caption)
+                        }
+                    }
+                    .tag(9)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .environmentObject(viewModel)
@@ -314,6 +378,37 @@ struct HeroSelectionButtonStyle: ButtonStyle {
             .cornerRadius(NGSize.corner)
             .scaleEffect(configuration.isPressed ? 0.95 : 1.0)
             .animation(.easeInOut(duration: 0.1), value: configuration.isPressed)
+    }
+}
+
+// MARK: - Health Benefit Row
+struct HealthBenefitRow: View {
+    let icon: String
+    let title: String
+    let description: String
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundColor(.white)
+                .frame(width: 40)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.headline)
+                    .foregroundColor(.white)
+                
+                Text(description)
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.8))
+            }
+            
+            Spacer()
+        }
+        .padding()
+        .background(Color.white.opacity(0.1))
+        .cornerRadius(12)
     }
 }
 

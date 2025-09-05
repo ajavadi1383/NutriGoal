@@ -19,6 +19,15 @@ final class OnboardingViewModel: ObservableObject {
     @Published var dietType = ""
     @Published var lang = ""
     
+    // HealthKit
+    @Published var healthKitPermissionGranted = false
+    private let healthKitService: HealthKitService
+    
+    // MARK: - Init
+    init(healthKitService: HealthKitService = HealthKitServiceImpl()) {
+        self.healthKitService = healthKitService
+    }
+    
     // MARK: - Setup Dependencies (No Firebase - offline only)
     func setupDependencies(router: AppRouter) {
         print("🎯 [OnboardingViewModel] setupDependencies - offline mode only")
@@ -28,7 +37,7 @@ final class OnboardingViewModel: ObservableObject {
     // MARK: - Navigation
     func next() {
         withAnimation {
-            page = min(page + 1, 8)
+            page = min(page + 1, 9)
         }
     }
     
@@ -83,5 +92,25 @@ final class OnboardingViewModel: ObservableObject {
         // Navigate to auth for sign-up/log-in
         router?.to(.auth)
         print("✅ [OnboardingViewModel] Navigating to auth for sign-up/log-in")
+    }
+    
+    // MARK: - HealthKit
+    func requestHealthKitPermissions() async {
+        do {
+            let granted = try await healthKitService.requestPermissions()
+            await MainActor.run {
+                healthKitPermissionGranted = granted
+                if granted {
+                    print("✅ [OnboardingViewModel] HealthKit permissions granted")
+                } else {
+                    print("⚠️ [OnboardingViewModel] HealthKit permissions denied")
+                }
+            }
+        } catch {
+            print("❌ [OnboardingViewModel] HealthKit permission request failed: \(error)")
+            await MainActor.run {
+                healthKitPermissionGranted = false
+            }
+        }
     }
 } 
