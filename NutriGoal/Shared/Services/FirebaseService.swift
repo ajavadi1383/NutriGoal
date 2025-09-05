@@ -21,7 +21,7 @@ final class FirebaseServiceImpl: FirebaseService {
         guard let uid = Auth.auth().currentUser?.uid else {
             throw NSError(domain: "FirebaseService", code: 401, userInfo: [NSLocalizedDescriptionKey: "No authenticated user"])
         }
-        
+
         try await db.collection("users").document(uid).setData([
             "email": profile.email,
             "birthDate": profile.birthDate,
