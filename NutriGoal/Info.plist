@@ -58,6 +58,10 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSHealthShareUsageDescription</key>
+	<string>NutriGoal needs access to your health data to track your steps, workouts, and calories burned for better nutrition insights.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>NutriGoal needs access to update your health data to sync your nutrition and fitness progress.</string>
 	
 	<!-- TODO: Enable Sign in with Apple Capability in Xcode -->
 	<!-- Go to Signing & Capabilities -> + Capability -> Sign in with Apple -->
