@@ -13,7 +13,6 @@ protocol HealthKitService {
 }
 
 // MARK: - HealthKit Service Implementation
-@MainActor
 final class HealthKitServiceImpl: HealthKitService {
     
     private let healthStore = HKHealthStore()
