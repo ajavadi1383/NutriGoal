@@ -50,8 +50,8 @@ struct HomeDashboardView: View {
                                 // Steps Card
                                 StatsCard(
                                     title: "Steps today",
-                                    value: "9,845",
-                                    target: "/10,000",
+                                    value: "\(viewModel.steps)",
+                                    target: "/\(viewModel.stepsTarget)",
                                     icon: "figure.walk",
                                     color: .black
                                 )
@@ -59,7 +59,7 @@ struct HomeDashboardView: View {
                                 // Calories Card
                                 StatsCard(
                                     title: "Calories burned",
-                                    value: "332",
+                                    value: "\(Int(viewModel.caloriesBurned))",
                                     target: "",
                                     icon: "flame.fill",
                                     color: NGColor.accent
@@ -136,7 +136,13 @@ struct HomeDashboardView: View {
         .onAppear {
             Task { 
                 await viewModel.loadMeals()
-                await viewModel.updateDailyStats()
+                await viewModel.loadHealthData()
+            }
+        }
+        .onChange(of: selectedDate) { _ in
+            Task {
+                await viewModel.loadMeals()
+                await viewModel.loadHealthData()
             }
         }
     }
@@ -275,8 +281,8 @@ struct CalorieProgressRing: View {
                 HStack {
                     Spacer()
                     VStack(alignment: .leading, spacing: 4) {
-                        StatBadge(icon: "figure.walk", value: "+\(steps - targetSteps)", label: "Steps")
-                        StatBadge(icon: "dumbbell.fill", value: "+50", label: "Weight lifting")
+                        StatBadge(icon: "figure.walk", value: "\(steps)", label: "Steps")
+                        StatBadge(icon: "dumbbell.fill", value: "\(Int(viewModel.caloriesBurned))", label: "Cal burned")
                     }
                     .padding(.leading, 140)
                 }
