@@ -281,7 +281,7 @@ struct CalorieProgressRing: View {
                 HStack {
                     Spacer()
                     VStack(alignment: .leading, spacing: 4) {
-                        StatBadge(icon: "figure.walk", value: "\(steps)", label: "Steps")
+                        StatBadge(icon: "figure.walk", value: "\(viewModel.steps)", label: "Steps")
                         StatBadge(icon: "dumbbell.fill", value: "\(Int(viewModel.caloriesBurned))", label: "Cal burned")
                     }
                     .padding(.leading, 140)

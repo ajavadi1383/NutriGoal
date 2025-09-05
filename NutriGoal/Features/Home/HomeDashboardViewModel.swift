@@ -31,10 +31,10 @@ final class HomeDashboardViewModel: ObservableObject {
     // MARK: - Init
     init(
         firebaseService: FirebaseService = FirebaseServiceImpl(),
-        healthKitService: HealthKitService? = nil
+        healthKitService: HealthKitService = HealthKitServiceImpl()
     ) {
         self.firebaseService = firebaseService
-        self.healthKitService = healthKitService ?? HealthKitServiceImpl()
+        self.healthKitService = healthKitService
         setupNotifications()
     }
     
