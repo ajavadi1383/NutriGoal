@@ -13,7 +13,7 @@ protocol FirebaseAuthService {
 
 // MARK: - Firebase Auth Service Implementation
 @MainActor
-final class FirebaseAuthServiceImpl: FirebaseAuthService {
+final class FirebaseAuthServiceImpl: FirebaseAuthService, ObservableObject {
     
     func createUser(email: String, password: String) async throws -> AuthDataResult {
         print("🔐 [FirebaseAuthService] Creating user with email: \(email)")
