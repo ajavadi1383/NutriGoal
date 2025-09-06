@@ -65,6 +65,8 @@ struct ContentView: View {
 
 struct HomeView: View {
     let router: AppRouter
+    @StateObject private var authService = FirebaseAuthServiceImpl()
+    @State private var currentUserEmail: String?
     
     var body: some View {
         HeroBaseView {
@@ -83,7 +85,7 @@ struct HomeView: View {
                 
                 // User Status
                 VStack(spacing: NGSize.spacing / 2) {
-                    if let email = getCurrentUserEmail() {
+                    if let email = currentUserEmail {
                         Text("Signed in as:")
                             .font(NGFont.bodyM)
                             .foregroundColor(.white.opacity(0.6))
@@ -108,9 +110,11 @@ struct HomeView: View {
                         router.to(.mainApp) // Navigate to main app dashboard
                     }
                     
-                    if getCurrentUserEmail() != nil {
+                    if currentUserEmail != nil {
                         PrimaryButton(title: "Sign Out") {
-                            signOut(router: router)
+                            Task {
+                                await signOut(router: router)
+                            }
                         }
                         .buttonStyle(SecondaryButtonStyle())
                     } else {
@@ -125,19 +129,28 @@ struct HomeView: View {
             }
             .padding()
         }
+        .onAppear {
+            loadCurrentUser()
+        }
+        .onChange(of: authService.getCurrentUser()?.uid) { _ in
+            loadCurrentUser()
+        }
     }
     
-    private func getCurrentUserEmail() -> String? {
-        return Auth.auth().currentUser?.email
+    private func loadCurrentUser() {
+        currentUserEmail = authService.getCurrentUser()?.email
+        print("👤 [HomeView] Current user email: \(currentUserEmail ?? "none")")
     }
     
-    private func signOut(router: AppRouter) {
+    private func signOut(router: AppRouter) async {
         print("🔓 HomeView: Sign out tapped")
         do {
-            try Auth.auth().signOut()
+            try authService.signOut()
+            currentUserEmail = nil
             router.to(.hero)
+            print("✅ [HomeView] Sign out successful")
         } catch {
-            print("❌ Sign out failed: \(error)")
+            print("❌ [HomeView] Sign out failed: \(error)")
         }
     }
 }
