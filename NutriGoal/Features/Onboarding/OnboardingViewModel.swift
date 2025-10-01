@@ -22,10 +22,21 @@ final class OnboardingViewModel: ObservableObject {
     // HealthKit
     @Published var healthKitPermissionGranted = false
     private let healthKitService: HealthKitService
+    private let firebaseService: FirebaseService
+    
+    // Calculated nutrition goals
+    @Published var calculatedCalories = 0
+    @Published var calculatedProtein = 0
+    @Published var calculatedCarbs = 0
+    @Published var calculatedFat = 0
     
     // MARK: - Init
-    init(healthKitService: HealthKitService = HealthKitServiceImpl()) {
+    init(
+        healthKitService: HealthKitService = HealthKitServiceImpl(),
+        firebaseService: FirebaseService = FirebaseServiceImpl()
+    ) {
         self.healthKitService = healthKitService
+        self.firebaseService = firebaseService
     }
     
     // MARK: - Setup Dependencies (No Firebase - offline only)
@@ -37,7 +48,7 @@ final class OnboardingViewModel: ObservableObject {
     // MARK: - Navigation
     func next() {
         withAnimation {
-            page = min(page + 1, 9)
+            page = min(page + 1, 10)
         }
     }
     
@@ -62,6 +73,36 @@ final class OnboardingViewModel: ObservableObject {
         
         UserDefaults.standard.set(currentData, forKey: "onboardingProgress")
         print("✅ [OnboardingViewModel] Page \(page) data saved locally")
+        
+        // Calculate nutrition goals after collecting all required data
+        if page == 8 { // After language page, before HealthKit
+            calculateNutritionGoals()
+        }
+    }
+    
+    // MARK: - Calculate Nutrition Goals
+    func calculateNutritionGoals() {
+        guard !sex.isEmpty, !activityLevel.isEmpty, !target.isEmpty else {
+            print("⚠️ [OnboardingViewModel] Missing required data for calculation")
+            return
+        }
+        
+        let goals = NutritionCalculator.calculateDailyGoals(
+            birthDate: birthDate,
+            sex: sex,
+            heightCm: heightCm,
+            weightKg: weightKg,
+            activityLevel: activityLevel,
+            target: target,
+            weeklyPaceKg: weeklyPaceKg
+        )
+        
+        calculatedCalories = goals.calories
+        calculatedProtein = goals.protein
+        calculatedCarbs = goals.carbs
+        calculatedFat = goals.fat
+        
+        print("📊 [OnboardingViewModel] Calculated goals: \(goals.calories) cal, \(goals.protein)g protein, \(goals.carbs)g carbs, \(goals.fat)g fat")
     }
     
     // MARK: - Finish Onboarding (Offline)

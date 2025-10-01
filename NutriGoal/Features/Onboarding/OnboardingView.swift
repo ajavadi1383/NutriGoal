@@ -9,7 +9,7 @@ struct OnboardingView: View {
             VStack {
                 // Progress indicator with white styling
                 HStack {
-                    ForEach(0..<10, id: \.self) { index in
+                    ForEach(0..<11, id: \.self) { index in
                         Rectangle()
                             .fill(index <= viewModel.page ? .white : Color.white.opacity(0.3))
                             .frame(height: 4)
@@ -25,7 +25,7 @@ struct OnboardingView: View {
                         title: "When were you born?",
                         isValid: true,
                         pageNumber: 0,
-                        totalPages: 10
+                        totalPages: 11
                     ) {
                         DatePicker("Birth Date", selection: $viewModel.birthDate, displayedComponents: .date)
                             .datePickerStyle(.wheel)
@@ -39,7 +39,7 @@ struct OnboardingView: View {
                         title: "What's your sex?",
                         isValid: !viewModel.sex.isEmpty,
                         pageNumber: 1,
-                        totalPages: 10
+                        totalPages: 11
                     ) {
                         VStack(spacing: NGSize.spacing) {
                             Button("Male") {
@@ -60,7 +60,7 @@ struct OnboardingView: View {
                         title: "How tall are you?",
                         isValid: viewModel.heightCm > 0,
                         pageNumber: 2,
-                        totalPages: 10
+                        totalPages: 11
                     ) {
                         VStack {
                             Text("\(viewModel.heightCm) cm")
@@ -81,7 +81,7 @@ struct OnboardingView: View {
                         title: "What's your weight?",
                         isValid: viewModel.weightKg > 0,
                         pageNumber: 3,
-                        totalPages: 10
+                        totalPages: 11
                     ) {
                         VStack {
                             Text(String(format: "%.1f kg", viewModel.weightKg))
@@ -99,7 +99,7 @@ struct OnboardingView: View {
                         title: "How active are you?",
                         isValid: !viewModel.activityLevel.isEmpty,
                         pageNumber: 4,
-                        totalPages: 10
+                        totalPages: 11
                     ) {
                         VStack(spacing: NGSize.spacing) {
                             Button("1-2 days/week") {
@@ -125,7 +125,7 @@ struct OnboardingView: View {
                         title: "What's your goal?",
                         isValid: !viewModel.target.isEmpty,
                         pageNumber: 5,
-                        totalPages: 10
+                        totalPages: 11
                     ) {
                         VStack(spacing: NGSize.spacing) {
                             Button("Lose weight") {
@@ -151,7 +151,7 @@ struct OnboardingView: View {
                         title: "Weekly pace goal?",
                         isValid: viewModel.weeklyPaceKg >= 0,
                         pageNumber: 6,
-                        totalPages: 10
+                        totalPages: 11
                     ) {
                         VStack {
                             Text(String(format: "%.1f kg/week", viewModel.weeklyPaceKg))
@@ -169,7 +169,7 @@ struct OnboardingView: View {
                         title: "Any dietary preferences?",
                         isValid: !viewModel.dietType.isEmpty,
                         pageNumber: 7,
-                        totalPages: 10
+                        totalPages: 11
                     ) {
                         VStack(spacing: NGSize.spacing) {
                             Button("None") {
@@ -200,7 +200,7 @@ struct OnboardingView: View {
                         title: "Choose your language",
                         isValid: !viewModel.lang.isEmpty,
                         pageNumber: 8,
-                        totalPages: 10,
+                        totalPages: 11,
                         isLastPage: false
                     ) {
                         VStack(spacing: NGSize.spacing) {
@@ -222,13 +222,13 @@ struct OnboardingView: View {
                     }
                     .tag(8)
                     
-                    // Page 9: HealthKit Permissions (Final)
+                    // Page 9: HealthKit Permissions
                     OnboardingPageView(
                         title: "Connect to Apple Health",
                         isValid: true, // Always allow to proceed
                         pageNumber: 9,
-                        totalPages: 10,
-                        isLastPage: true
+                        totalPages: 11,
+                        isLastPage: false
                     ) {
                         VStack(spacing: 24) {
                             // Subtitle
@@ -285,6 +285,90 @@ struct OnboardingView: View {
                         }
                     }
                     .tag(9)
+                    
+                    // Page 10: Nutrition Goals Summary (Final)
+                    OnboardingPageView(
+                        title: "Your Personalized Plan",
+                        isValid: true,
+                        pageNumber: 10,
+                        totalPages: 11,
+                        isLastPage: true
+                    ) {
+                        VStack(spacing: NGSize.spacing * 2) {
+                            // Goal summary
+                            Text("Based on your profile, here's your daily nutrition plan:")
+                                .font(.body)
+                                .foregroundColor(.white.opacity(0.9))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                            
+                            // Calorie Goal Card
+                            VStack(spacing: 16) {
+                                // Main Calorie Target
+                                VStack(spacing: 8) {
+                                    Text("Daily Calories")
+                                        .font(.headline)
+                                        .foregroundColor(.white.opacity(0.7))
+                                    
+                                    HStack(alignment: .bottom, spacing: 4) {
+                                        Text("\(viewModel.calculatedCalories)")
+                                            .font(.system(size: 48, weight: .bold))
+                                            .foregroundColor(.white)
+                                        
+                                        Text("kcal")
+                                            .font(.title3)
+                                            .foregroundColor(.white.opacity(0.7))
+                                            .padding(.bottom, 8)
+                                    }
+                                }
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.white.opacity(0.15))
+                                .cornerRadius(16)
+                                
+                                // Macros Breakdown
+                                VStack(spacing: 12) {
+                                    Text("Daily Macros")
+                                        .font(.headline)
+                                        .foregroundColor(.white.opacity(0.7))
+                                    
+                                    HStack(spacing: 16) {
+                                        MacroGoalCard(
+                                            icon: "leaf.fill",
+                                            label: "Protein",
+                                            value: "\(viewModel.calculatedProtein)g",
+                                            color: .green
+                                        )
+                                        
+                                        MacroGoalCard(
+                                            icon: "circle.fill",
+                                            label: "Carbs",
+                                            value: "\(viewModel.calculatedCarbs)g",
+                                            color: .orange
+                                        )
+                                        
+                                        MacroGoalCard(
+                                            icon: "drop.fill",
+                                            label: "Fat",
+                                            value: "\(viewModel.calculatedFat)g",
+                                            color: .blue
+                                        )
+                                    }
+                                }
+                                .padding()
+                                .background(Color.white.opacity(0.1))
+                                .cornerRadius(12)
+                            }
+                            
+                            // Goal explanation
+                            Text(getGoalExplanation(target: viewModel.target, weeklyPace: viewModel.weeklyPaceKg))
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.8))
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+                        }
+                    }
+                    .tag(10)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .environmentObject(viewModel)
@@ -409,6 +493,47 @@ struct HealthBenefitRow: View {
         .padding()
         .background(Color.white.opacity(0.1))
         .cornerRadius(12)
+    }
+}
+
+// MARK: - Macro Goal Card
+struct MacroGoalCard: View {
+    let icon: String
+    let label: String
+    let value: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundColor(color)
+            
+            Text(value)
+                .font(.title3)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+            
+            Text(label)
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.7))
+        }
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background(Color.white.opacity(0.1))
+        .cornerRadius(12)
+    }
+}
+
+// MARK: - Goal Explanation Helper
+private func getGoalExplanation(target: String, weeklyPace: Double) -> String {
+    switch target {
+    case "lose":
+        return "To lose \(String(format: "%.1f", weeklyPace)) kg per week, maintain this calorie target with regular exercise"
+    case "gain":
+        return "To build muscle effectively, follow this calorie surplus with strength training"
+    default:
+        return "To maintain your current weight, stick to this balanced nutrition plan"
     }
 }
 
