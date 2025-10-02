@@ -8,34 +8,20 @@ struct HomeDashboardView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // White background like Cal AI
-                Color.white
+                // Dark background like Cal AI
+                Color.black
                     .ignoresSafeArea()
                 
                 ScrollView {
-                    VStack(spacing: NGSize.spacing * 1.5) {
-                        // Header with App Name
+                    VStack(spacing: NGSize.spacing * 2) {
+                        // Header
                         HStack {
-                            VStack(alignment: .leading) {
-                                Text("🔥 NutriGoal")
-                                    .font(NGFont.titleL)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.black)
-                            }
+                            Text("🔥 NutriGoal")
+                                .font(NGFont.titleL)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
                             
                             Spacer()
-                            
-                            // Notification badge
-                            ZStack {
-                                Circle()
-                                    .fill(NGColor.secondary)
-                                    .frame(width: 24, height: 24)
-                                
-                                Text("1")
-                                    .font(.caption)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                            }
                         }
                         .padding(.horizontal)
                         .padding(.top)
@@ -44,72 +30,93 @@ struct HomeDashboardView: View {
                         WeekCalendarView(selectedDate: $selectedDate)
                             .padding(.horizontal)
                         
-                        // Main Stats Section
-                        VStack(spacing: NGSize.spacing) {
-                            HStack(spacing: NGSize.spacing) {
-                                // Steps Card
-                                StatsCard(
-                                    title: "Steps today",
-                                    value: "\(viewModel.steps)",
-                                    target: "/\(viewModel.stepsTarget)",
-                                    icon: "figure.walk",
-                                    color: .black
-                                )
+                        // Main Calorie Ring
+                        VStack(spacing: 8) {
+                            ZStack {
+                                // Background ring
+                                Circle()
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 12)
+                                    .frame(width: 140, height: 140)
                                 
-                                // Calories Card
-                                StatsCard(
-                                    title: "Calories burned",
-                                    value: "\(Int(viewModel.caloriesBurned))",
-                                    target: "",
-                                    icon: "flame.fill",
-                                    color: NGColor.accent
-                                )
+                                // Progress ring
+                                Circle()
+                                    .trim(from: 0, to: min(Double(viewModel.caloriesConsumed) / Double(viewModel.caloriesTarget), 1.0))
+                                    .stroke(Color.white, style: StrokeStyle(lineWidth: 12, lineCap: .round))
+                                    .frame(width: 140, height: 140)
+                                    .rotationEffect(.degrees(-90))
+                                    .animation(.easeInOut(duration: 0.5), value: viewModel.caloriesConsumed)
+                                
+                                // Center content
+                                VStack(spacing: 2) {
+                                    Text("🔥")
+                                        .font(.title)
+                                    
+                                    Text("\(max(0, viewModel.caloriesTarget - viewModel.caloriesConsumed))")
+                                        .font(.system(size: 32, weight: .bold))
+                                        .foregroundColor(.white)
+                                }
                             }
                             
-                            // Circular Progress Ring
-                            CalorieProgressRing(
-                                consumed: viewModel.caloriesConsumed,
-                                target: viewModel.caloriesTarget,
-                                steps: viewModel.steps,
-                                caloriesBurned: viewModel.caloriesBurned
+                            Text("Calories \(viewModel.caloriesConsumed >= viewModel.caloriesTarget ? "over" : "left")")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                        .padding(.vertical)
+                        
+                        // Macro Rings
+                        HStack(spacing: NGSize.spacing * 2) {
+                            MacroRing(
+                                value: viewModel.proteinConsumed,
+                                target: viewModel.proteinTarget,
+                                label: "Protein",
+                                unit: "g",
+                                color: Color(hex: "#FF6B6B")
                             )
-                            .padding(.vertical)
                             
-                            // Water Section
-                            WaterTrackingCard()
+                            MacroRing(
+                                value: viewModel.carbsConsumed,
+                                target: viewModel.carbsTarget,
+                                label: "Carbs",
+                                unit: "g",
+                                color: Color(hex: "#FFB74D")
+                            )
+                            
+                            MacroRing(
+                                value: viewModel.fatConsumed,
+                                target: viewModel.fatTarget,
+                                label: "Fats",
+                                unit: "g",
+                                color: Color(hex: "#64B5F6")
+                            )
                         }
                         .padding(.horizontal)
                         
                         // Recently Logged Section
                         VStack(alignment: .leading, spacing: NGSize.spacing) {
-                            HStack {
-                                Text("Recently logged")
-                                    .font(NGFont.titleM)
-                                    .fontWeight(.semibold)
-                                    .foregroundColor(.black)
-                                
-                                Spacer()
-                            }
-                            .padding(.horizontal)
+                            Text("Recently logged")
+                                .font(NGFont.titleM)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                                .padding(.horizontal)
                             
                             if viewModel.meals.isEmpty {
                                 EmptyMealsView()
                                     .padding(.horizontal)
                             } else {
-                                VStack(spacing: NGSize.cardSpacing) {
+                                VStack(spacing: NGSize.spacing) {
                                     ForEach(viewModel.meals, id: \.id) { meal in
-                                        MealLogCard(meal: meal)
+                                        CalAIMealCard(meal: meal)
                                     }
                                 }
                                 .padding(.horizontal)
                             }
                         }
                         
-                        Spacer(minLength: 100) // Space for FAB
+                        Spacer(minLength: 100)
                     }
                 }
                 
-                // Floating Action Button (Cal AI style)
+                // FAB (Cal AI style)
                 VStack {
                     Spacer()
                     HStack {
@@ -118,11 +125,11 @@ struct HomeDashboardView: View {
                             Image(systemName: "plus")
                                 .font(.title2)
                                 .fontWeight(.bold)
-                                .foregroundColor(.white)
+                                .foregroundColor(.black)
                                 .frame(width: 56, height: 56)
-                                .background(.black)
+                                .background(.white)
                                 .clipShape(Circle())
-                                .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+                                .shadow(color: .white.opacity(0.3), radius: 8, x: 0, y: 4)
                         }
                         .padding(.trailing, NGSize.spacing * 2)
                         .padding(.bottom, NGSize.spacing * 6)
@@ -135,6 +142,7 @@ struct HomeDashboardView: View {
         }
         .onAppear {
             Task { 
+                await viewModel.loadUserGoals()
                 await viewModel.loadMeals()
                 await viewModel.loadHealthData()
             }
@@ -148,7 +156,7 @@ struct HomeDashboardView: View {
     }
 }
 
-// MARK: - Week Calendar
+// MARK: - Week Calendar (Dark Style)
 struct WeekCalendarView: View {
     @Binding var selectedDate: Date
     
@@ -169,13 +177,13 @@ struct WeekCalendarView: View {
                     
                     ZStack {
                         Circle()
-                            .fill(isSelected(date) ? .black : Color.clear)
+                            .fill(isSelected(date) ? .white : Color.clear)
                             .frame(width: 32, height: 32)
                         
                         Text("\(Calendar.current.component(.day, from: date))")
                             .font(.subheadline)
                             .fontWeight(isSelected(date) ? .bold : .medium)
-                            .foregroundColor(isSelected(date) ? .white : .black)
+                            .foregroundColor(isSelected(date) ? .black : .white)
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -185,7 +193,7 @@ struct WeekCalendarView: View {
             }
         }
         .padding(.vertical, NGSize.spacing)
-        .background(NGColor.cardBackground)
+        .background(Color.white.opacity(0.1))
         .cornerRadius(NGSize.corner)
     }
     
@@ -200,235 +208,139 @@ struct WeekCalendarView: View {
     }
 }
 
-// MARK: - Stats Card
-struct StatsCard: View {
-    let title: String
-    let value: String
-    let target: String
-    let icon: String
-    let color: Color
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: NGSize.cardSpacing) {
-            HStack {
-                Text(title)
-                    .font(NGFont.bodyS)
-                    .foregroundColor(.gray)
-                
-                Spacer()
-                
-                Image(systemName: icon)
-                    .foregroundColor(color)
-            }
-            
-            HStack(alignment: .bottom, spacing: 2) {
-                Text(value)
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(.black)
-                
-                Text(target)
-                    .font(NGFont.bodyS)
-                    .foregroundColor(.gray)
-            }
-        }
-        .padding()
-        .background(NGColor.cardBackground)
-        .cornerRadius(NGSize.corner)
-    }
-}
-
-// MARK: - Calorie Progress Ring
-struct CalorieProgressRing: View {
-    let consumed: Int
+// MARK: - Macro Ring (Cal AI Style)
+struct MacroRing: View {
+    let value: Int
     let target: Int
-    let steps: Int
-    let caloriesBurned: Double
-    
-    private var progress: Double {
-        Double(consumed) / Double(target)
-    }
-    
-    var body: some View {
-        ZStack {
-            // Background ring
-            Circle()
-                .stroke(Color.gray.opacity(0.2), lineWidth: 8)
-                .frame(width: 120, height: 120)
-            
-            // Progress ring
-            Circle()
-                .trim(from: 0, to: progress)
-                .stroke(.black, style: StrokeStyle(lineWidth: 8, lineCap: .round))
-                .frame(width: 120, height: 120)
-                .rotationEffect(.degrees(-90))
-                .animation(.easeInOut(duration: 0.5), value: progress)
-            
-            // Center content
-            VStack(spacing: 2) {
-                Text("🔥")
-                    .font(.title)
-                
-                Text("\(consumed)")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.black)
-            }
-        }
-        .overlay(
-            // Side stats
-            VStack {
-                HStack {
-                    Spacer()
-                    VStack(alignment: .leading, spacing: 4) {
-                        StatBadge(icon: "figure.walk", value: "\(steps)", label: "Steps")
-                        StatBadge(icon: "dumbbell.fill", value: "\(Int(caloriesBurned))", label: "Cal burned")
-                    }
-                    .padding(.leading, 140)
-                }
-                Spacer()
-            }
-        )
-    }
-}
-
-// MARK: - Stat Badge
-struct StatBadge: View {
-    let icon: String
-    let value: String
     let label: String
-    
-    var body: some View {
-        HStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.caption)
-                .foregroundColor(.white)
-                .frame(width: 20, height: 20)
-                .background(.black)
-                .clipShape(Circle())
-            
-            VStack(alignment: .leading, spacing: 0) {
-                Text(value)
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .foregroundColor(.black)
-                
-                Text(label)
-                    .font(.caption2)
-                    .foregroundColor(.gray)
-            }
-        }
-    }
-}
-
-// MARK: - Water Tracking Card
-struct WaterTrackingCard: View {
-    @State private var waterAmount = 24
-    
-    var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Image(systemName: "drop.fill")
-                        .foregroundColor(.blue)
-                    Text("Water")
-                        .font(NGFont.bodyM)
-                        .fontWeight(.medium)
-                        .foregroundColor(.black)
-                }
-                
-                Text("\(waterAmount) fl oz (3 cups)")
-                    .font(NGFont.bodyS)
-                    .foregroundColor(.gray)
-            }
-            
-            Spacer()
-            
-            HStack(spacing: 12) {
-                Button(action: { waterAmount = max(0, waterAmount - 8) }) {
-                    Image(systemName: "minus.circle.fill")
-                        .font(.title3)
-                        .foregroundColor(.gray)
-                }
-                
-                Button(action: { waterAmount += 8 }) {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.title3)
-                        .foregroundColor(.black)
-                }
-            }
-        }
-        .padding()
-        .background(NGColor.cardBackground)
-        .cornerRadius(NGSize.corner)
-    }
-}
-
-// MARK: - Meal Log Card
-struct MealLogCard: View {
-    let meal: Meal
-    
-    var body: some View {
-        HStack(spacing: NGSize.spacing) {
-            // Meal Image Placeholder
-            RoundedRectangle(cornerRadius: 8)
-                .fill(NGColor.cardBackground)
-                .frame(width: 60, height: 60)
-                .overlay(
-                    Image(systemName: meal.source == "photo" ? "photo.fill" : "fork.knife")
-                        .foregroundColor(.gray)
-                )
-            
-            // Meal Info
-            VStack(alignment: .leading, spacing: 4) {
-                Text(meal.name)
-                    .font(NGFont.bodyM)
-                    .fontWeight(.medium)
-                    .foregroundColor(.black)
-                
-                Text(meal.loggedAt.formatted(date: .omitted, time: .shortened))
-                    .font(NGFont.caption)
-                    .foregroundColor(.gray)
-                
-                HStack(spacing: 12) {
-                    MacroChip(icon: "flame.fill", value: "\(meal.calories)", unit: "calories", color: NGColor.accent)
-                    MacroChip(icon: "leaf.fill", value: "\(meal.proteinG)", unit: "g", color: .red)
-                    MacroChip(icon: "circle.fill", value: "\(meal.carbsG)", unit: "g", color: .orange)
-                    MacroChip(icon: "drop.fill", value: "\(meal.fatG)", unit: "g", color: .blue)
-                }
-            }
-            
-            Spacer()
-        }
-        .padding()
-        .background(.white)
-        .cornerRadius(NGSize.corner)
-        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
-    }
-}
-
-// MARK: - Macro Chip
-struct MacroChip: View {
-    let icon: String
-    let value: String
     let unit: String
     let color: Color
     
+    private var progress: Double {
+        guard target > 0 else { return 0 }
+        return Double(value) / Double(target)
+    }
+    
+    private var difference: Int {
+        target - value
+    }
+    
+    private var status: String {
+        value >= target ? "over" : "left"
+    }
+    
     var body: some View {
-        HStack(spacing: 2) {
-            Image(systemName: icon)
-                .font(.caption2)
-                .foregroundColor(color)
+        VStack(spacing: 8) {
+            ZStack {
+                // Background ring
+                Circle()
+                    .stroke(Color.gray.opacity(0.3), lineWidth: 8)
+                    .frame(width: 80, height: 80)
+                
+                // Progress ring
+                Circle()
+                    .trim(from: 0, to: min(progress, 1.0))
+                    .stroke(color, style: StrokeStyle(lineWidth: 8, lineCap: .round))
+                    .frame(width: 80, height: 80)
+                    .rotationEffect(.degrees(-90))
+                    .animation(.easeInOut(duration: 0.5), value: progress)
+                
+                // Center value
+                Text("\(abs(difference))\(unit)")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.white)
+            }
             
-            Text("\(value)\(unit == "g" ? "g" : "")")
-                .font(.caption2)
-                .fontWeight(.medium)
-                .foregroundColor(.black)
+            // Label
+            Text("\(label) \(status)")
+                .font(.caption)
+                .foregroundColor(.gray)
         }
     }
 }
 
-// MARK: - Empty Meals View
+// MARK: - Cal AI Style Meal Card
+struct CalAIMealCard: View {
+    let meal: Meal
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // Meal photo thumbnail
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.gray.opacity(0.3))
+                .frame(width: 80, height: 80)
+                .overlay(
+                    Image(systemName: meal.source == "photo" ? "photo.fill" : "fork.knife")
+                        .font(.title2)
+                        .foregroundColor(.gray)
+                )
+            
+            // Meal info
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text(meal.name)
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                        .lineLimit(1)
+                    
+                    Spacer()
+                    
+                    Text(meal.loggedAt.formatted(date: .omitted, time: .shortened))
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+                
+                // Calorie badge
+                HStack {
+                    Image(systemName: "flame.fill")
+                        .font(.caption)
+                        .foregroundColor(.white)
+                    Text("\(meal.calories) kcal")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.white.opacity(0.2))
+                .cornerRadius(6)
+                
+                // Macro badges
+                HStack(spacing: 8) {
+                    MacroBadge(icon: "⚡️", value: "\(meal.proteinG)g", color: Color(hex: "#FF6B6B"))
+                    MacroBadge(icon: "🌾", value: "\(meal.carbsG)g", color: Color(hex: "#FFB74D"))
+                    MacroBadge(icon: "🥑", value: "\(meal.fatG)g", color: Color(hex: "#64B5F6"))
+                }
+            }
+            
+            Spacer()
+        }
+        .padding()
+        .background(Color.white.opacity(0.08))
+        .cornerRadius(16)
+    }
+}
+
+// MARK: - Macro Badge
+struct MacroBadge: View {
+    let icon: String
+    let value: String
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(icon)
+                .font(.caption2)
+            Text(value)
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundColor(color)
+        }
+    }
+}
+
+// MARK: - Empty Meals View (Dark Style)
 struct EmptyMealsView: View {
     var body: some View {
         VStack(spacing: NGSize.spacing) {
@@ -441,8 +353,8 @@ struct EmptyMealsView: View {
                 .foregroundColor(.gray)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, NGSize.spacing * 2)
-        .background(NGColor.cardBackground)
+        .padding(.vertical, NGSize.spacing * 3)
+        .background(Color.white.opacity(0.05))
         .cornerRadius(NGSize.corner)
     }
 }

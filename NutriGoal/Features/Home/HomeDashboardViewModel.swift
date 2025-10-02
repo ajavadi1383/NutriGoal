@@ -25,7 +25,12 @@ final class HomeDashboardViewModel: ObservableObject {
     @Published var proteinConsumed = 0
     @Published var carbsConsumed = 0
     @Published var fatConsumed = 0
+    
+    // Nutrition goals (from user profile)
     @Published var caloriesTarget = 2100
+    @Published var proteinTarget = 131
+    @Published var carbsTarget = 236
+    @Published var fatTarget = 70
     @Published var waterOunces = 24
     
     // MARK: - Init
@@ -114,6 +119,40 @@ final class HomeDashboardViewModel: ObservableObject {
     func selectDate(_ date: Date) {
         selectedDate = date
         Task { await loadMeals() }
+    }
+    
+    // MARK: - Load User Goals
+    func loadUserGoals() async {
+        // Get user goals from stored onboarding data
+        guard let onboardingData = UserDefaults.standard.object(forKey: "onboardingData") as? [String: Any],
+              let birthDate = onboardingData["birthDate"] as? Date,
+              let sex = onboardingData["sex"] as? String,
+              let heightCm = onboardingData["heightCm"] as? Int,
+              let weightKg = onboardingData["weightKg"] as? Double,
+              let activityLevel = onboardingData["activityLevel"] as? String,
+              let target = onboardingData["target"] as? String,
+              let weeklyPaceKg = onboardingData["weeklyPaceKg"] as? Double else {
+            print("⚠️ [HomeDashboardViewModel] No onboarding data found, using defaults")
+            return
+        }
+        
+        // Calculate personalized goals
+        let goals = NutritionCalculator.calculateDailyGoals(
+            birthDate: birthDate,
+            sex: sex,
+            heightCm: heightCm,
+            weightKg: weightKg,
+            activityLevel: activityLevel,
+            target: target,
+            weeklyPaceKg: weeklyPaceKg
+        )
+        
+        caloriesTarget = goals.calories
+        proteinTarget = goals.protein
+        carbsTarget = goals.carbs
+        fatTarget = goals.fat
+        
+        print("✅ [HomeDashboardViewModel] Loaded personalized goals: \(goals.calories) cal, \(goals.protein)g protein")
     }
     
     // MARK: - Cleanup
