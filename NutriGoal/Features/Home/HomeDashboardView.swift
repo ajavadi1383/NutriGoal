@@ -8,10 +8,12 @@ struct HomeDashboardView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                // Dark background like Cal AI
-                Color.black
-                    .ignoresSafeArea()
+                // Hero-style gradient background
+                HeroBaseView {
+                    Color.clear
+                }
                 
+                ScrollView {
                 ScrollView {
                     VStack(spacing: NGSize.spacing * 2) {
                         // Header
@@ -115,6 +117,7 @@ struct HomeDashboardView: View {
                         Spacer(minLength: 100)
                     }
                 }
+                .ignoresSafeArea(edges: .top)
                 
                 // FAB (Cal AI style)
                 VStack {
@@ -125,11 +128,11 @@ struct HomeDashboardView: View {
                             Image(systemName: "plus")
                                 .font(.title2)
                                 .fontWeight(.bold)
-                                .foregroundColor(.black)
+                                .foregroundColor(.white)
                                 .frame(width: 56, height: 56)
-                                .background(.white)
+                                .background(NGColor.primary)
                                 .clipShape(Circle())
-                                .shadow(color: .white.opacity(0.3), radius: 8, x: 0, y: 4)
+                                .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
                         }
                         .padding(.trailing, NGSize.spacing * 2)
                         .padding(.bottom, NGSize.spacing * 6)
@@ -193,7 +196,7 @@ struct WeekCalendarView: View {
             }
         }
         .padding(.vertical, NGSize.spacing)
-        .background(Color.white.opacity(0.1))
+        .background(Color.white.opacity(0.15))
         .cornerRadius(NGSize.corner)
     }
     
@@ -317,7 +320,7 @@ struct CalAIMealCard: View {
             Spacer()
         }
         .padding()
-        .background(Color.white.opacity(0.08))
+        .background(Color.white.opacity(0.15))
         .cornerRadius(16)
     }
 }
