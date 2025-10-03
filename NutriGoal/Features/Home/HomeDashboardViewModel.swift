@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import PhotosUI
 
 @MainActor
 final class HomeDashboardViewModel: ObservableObject {
@@ -7,11 +8,17 @@ final class HomeDashboardViewModel: ObservableObject {
     // MARK: - Dependencies
     private let firebaseService: FirebaseService
     private let healthKitService: HealthKitService
+    private let foodRecognitionService: FoodRecognitionService
     
     // MARK: - Published Properties
     @Published var meals: [Meal] = []
     @Published var isLoading = false
     @Published var selectedDate = Date()
+    
+    // Photo picker and analysis
+    @Published var selectedPhotoItem: PhotosPickerItem?
+    @Published var isAnalyzingFood = false
+    @Published var analysisProgress = 0.0
     
     // Health data (from HealthKit)
     @Published var steps = 0
@@ -36,10 +43,12 @@ final class HomeDashboardViewModel: ObservableObject {
     // MARK: - Init
     init(
         firebaseService: FirebaseService = FirebaseServiceImpl(),
-        healthKitService: HealthKitService = HealthKitServiceImpl()
+        healthKitService: HealthKitService = HealthKitServiceImpl(),
+        foodRecognitionService: FoodRecognitionService = FoodRecognitionServiceImpl()
     ) {
         self.firebaseService = firebaseService
         self.healthKitService = healthKitService
+        self.foodRecognitionService = foodRecognitionService
         setupNotifications()
     }
     
@@ -153,6 +162,68 @@ final class HomeDashboardViewModel: ObservableObject {
         fatTarget = goals.fat
         
         print("✅ [HomeDashboardViewModel] Loaded personalized goals: \(goals.calories) cal, \(goals.protein)g protein")
+    }
+    
+    // MARK: - Photo Processing (Cal AI Style)
+    func processSelectedPhoto() async {
+        guard let photoItem = selectedPhotoItem else { return }
+        
+        isAnalyzingFood = true
+        analysisProgress = 0.0
+        
+        do {
+            // Load image data
+            analysisProgress = 0.2
+            guard let data = try await photoItem.loadTransferable(type: Data.self),
+                  let image = UIImage(data: data) else {
+                print("❌ [HomeDashboardViewModel] Failed to load image")
+                isAnalyzingFood = false
+                return
+            }
+            
+            analysisProgress = 0.4
+            print("🤖 [HomeDashboardViewModel] Starting AI food recognition...")
+            
+            // Recognize food
+            let result = try await foodRecognitionService.recognise(image: image)
+            analysisProgress = 0.8
+            
+            print("✅ [HomeDashboardViewModel] Food recognized: \(result.name)")
+            
+            // Create meal automatically
+            let meal = Meal(
+                id: UUID().uuidString,
+                loggedAt: Date(),
+                source: "photo",
+                name: result.name,
+                photoURL: nil,
+                calories: result.calories,
+                proteinG: result.protein,
+                carbsG: result.carbs,
+                fatG: result.fat,
+                smartSwap: nil
+            )
+            
+            // Save to Firebase
+            try await firebaseService.save(meal: meal, for: Date())
+            try await firebaseService.updateDayStats(for: Date(), adding: meal)
+            
+            analysisProgress = 1.0
+            print("✅ [HomeDashboardViewModel] Meal saved automatically")
+            
+            // Wait a moment to show 100%
+            try await Task.sleep(nanoseconds: 500_000_000)
+            
+            // Reload meals and hide analyzing card
+            await loadMeals()
+            isAnalyzingFood = false
+            
+        } catch {
+            print("❌ [HomeDashboardViewModel] Food processing failed: \(error)")
+            isAnalyzingFood = false
+            analysisProgress = 0.0
+            // TODO: Show error to user
+        }
     }
     
     // MARK: - Cleanup

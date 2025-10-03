@@ -12,21 +12,8 @@ final class FoodRecognitionServiceImpl: FoodRecognitionService {
     private let openAIService = OpenAIService()
     
     func recognise(image: UIImage) async throws -> (name: String, calories: Int, protein: Int, carbs: Int, fat: Int) {
-        do {
-            return try await openAIService.recognizeFood(from: image)
-        } catch {
-            print("❌ [FoodRecognitionService] OpenAI recognition failed: \(error)")
-            
-            // Fallback to stub data if OpenAI fails
-            print("🔄 [FoodRecognitionService] Using fallback recognition...")
-            return (
-                name: "Food Item",
-                calories: 300,
-                protein: 20,
-                carbs: 30,
-                fat: 10
-            )
-        }
+        // No fallback - throw errors so UI can handle properly
+        return try await openAIService.recognizeFood(from: image)
     }
 }
 
