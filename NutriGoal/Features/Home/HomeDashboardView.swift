@@ -359,23 +359,73 @@ struct HomeDashboardView: View {
         }
     }
     
-    // MARK: - Empty Meals View (Dark Style)
-    struct EmptyMealsView: View {
-        var body: some View {
-            VStack(spacing: NGSize.spacing) {
-                Image(systemName: "fork.knife")
-                    .font(.system(size: 40))
-                    .foregroundColor(.gray.opacity(0.5))
-                
-                Text("No meals logged today")
-                    .font(NGFont.bodyM)
-                    .foregroundColor(.gray)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, NGSize.spacing * 3)
-            .background(Color.white.opacity(0.05))
-            .cornerRadius(NGSize.corner)
+// MARK: - Empty Meals View (Dark Style)
+struct EmptyMealsView: View {
+    var body: some View {
+        VStack(spacing: NGSize.spacing) {
+            Image(systemName: "fork.knife")
+                .font(.system(size: 40))
+                .foregroundColor(.gray.opacity(0.5))
+            
+            Text("No meals logged today")
+                .font(NGFont.bodyM)
+                .foregroundColor(.gray)
         }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, NGSize.spacing * 3)
+        .background(Color.white.opacity(0.05))
+        .cornerRadius(NGSize.corner)
     }
+}
+
+// MARK: - Analyzing Food Card (Cal AI Style)
+struct AnalyzingFoodCard: View {
+    let progress: Double
     
+    var body: some View {
+        HStack(spacing: 16) {
+            // Food image with progress ring
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.white.opacity(0.1))
+                    .frame(width: 80, height: 80)
+                
+                // Progress ring
+                Circle()
+                    .stroke(Color.white.opacity(0.3), lineWidth: 4)
+                    .frame(width: 50, height: 50)
+                
+                Circle()
+                    .trim(from: 0, to: progress)
+                    .stroke(Color.white, style: StrokeStyle(lineWidth: 4, lineCap: .round))
+                    .frame(width: 50, height: 50)
+                    .rotationEffect(.degrees(-90))
+                    .animation(.linear(duration: 0.3), value: progress)
+                
+                Text("\(Int(progress * 100))%")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+            }
+            
+            // Analyzing text
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Analyzing food...")
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white)
+                
+                Text("We'll notify you when done!")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.7))
+            }
+            
+            Spacer()
+        }
+        .padding()
+        .background(Color.white.opacity(0.15))
+        .cornerRadius(16)
+    }
+}
+
 }
