@@ -1,0 +1,53 @@
+# Xcode
+.DS_Store
+build/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata/
+*.xccheckout
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
+*.xcuserstate
+*.xcworkspace
+!default.xcworkspace
+
+# CocoaPods
+Pods/
+
+# Swift Package Manager
+.swiftpm
+.build/
+
+# Sensitive files - DO NOT COMMIT API KEYS!
+# GoogleService-Info.plist contains OpenAI API key
+# Keep template in repo, but actual keys should be local only
+GoogleService-Info.plist
+
+# Firebase config (if using multiple environments)
+GoogleService-Info-Dev.plist
+GoogleService-Info-Prod.plist
+
+# Environment variables
+.env
+.env.local
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Code signing
+*.mobileprovision
+*.cer
+*.p12
+*.certSigningRequest
+
