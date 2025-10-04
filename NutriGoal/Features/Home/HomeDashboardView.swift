@@ -458,19 +458,6 @@ struct AnalyzingFoodCard: View {
         .background(Color.white.opacity(0.15))
         .cornerRadius(16)
     }
-    
-    private func loadPhoto(from url: URL) async {
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            if let image = UIImage(data: data) {
-                await MainActor.run {
-                    self.loadedImage = image
-                }
-            }
-        } catch {
-            print("❌ Failed to load meal photo: \(error)")
-        }
-    }
 }
 
 }
