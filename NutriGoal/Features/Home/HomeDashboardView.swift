@@ -352,16 +352,29 @@ struct CalAIMealCard: View {
                     }
                 }
                 
-                Spacer()
-            }
-            .padding()
-            .background(Color.white.opacity(0.15))
-            .cornerRadius(16)
+            Spacer()
         }
+        .padding()
+        .background(Color.white.opacity(0.15))
+        .cornerRadius(16)
     }
     
-    // MARK: - Macro Badge
-    struct MacroBadge: View {
+    private func loadPhoto(from url: URL) async {
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            if let image = UIImage(data: data) {
+                await MainActor.run {
+                    self.loadedImage = image
+                }
+            }
+        } catch {
+            print("❌ Failed to load meal photo: \(error)")
+        }
+    }
+}
+    
+// MARK: - Macro Badge
+struct MacroBadge: View {
         let icon: String
         let value: String
         let color: Color
