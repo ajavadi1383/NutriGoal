@@ -19,6 +19,7 @@ final class HomeDashboardViewModel: ObservableObject {
     @Published var selectedPhotoItem: PhotosPickerItem?
     @Published var isAnalyzingFood = false
     @Published var analysisProgress = 0.0
+    @Published var currentFoodImage: UIImage?
     
     // Health data (from HealthKit)
     @Published var steps = 0
@@ -181,22 +182,34 @@ final class HomeDashboardViewModel: ObservableObject {
                 return
             }
             
+            currentFoodImage = image
             analysisProgress = 0.4
             print("🤖 [HomeDashboardViewModel] Starting AI food recognition...")
             
             // Recognize food
             let result = try await foodRecognitionService.recognise(image: image)
-            analysisProgress = 0.8
+            analysisProgress = 0.6
             
             print("✅ [HomeDashboardViewModel] Food recognized: \(result.name)")
             
-            // Create meal automatically
+            // Generate unique meal ID
+            let mealId = UUID().uuidString
+            
+            // Upload photo to Firebase Storage
+            analysisProgress = 0.7
+            print("📸 [HomeDashboardViewModel] Uploading food photo...")
+            let photoURL = try await firebaseService.uploadFoodPhoto(image: image, mealId: mealId)
+            
+            analysisProgress = 0.8
+            print("✅ [HomeDashboardViewModel] Photo uploaded: \(photoURL)")
+            
+            // Create meal with photo URL
             let meal = Meal(
-                id: UUID().uuidString,
+                id: mealId,
                 loggedAt: Date(),
                 source: "photo",
                 name: result.name,
-                photoURL: nil,
+                photoURL: photoURL,
                 calories: result.calories,
                 proteinG: result.protein,
                 carbsG: result.carbs,

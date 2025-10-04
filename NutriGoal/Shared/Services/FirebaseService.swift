@@ -1,6 +1,8 @@
 import Foundation
 import FirebaseFirestore
 import FirebaseAuth
+import FirebaseStorage
+import UIKit
 
 // MARK: - Protocol
 protocol FirebaseService {
@@ -9,6 +11,7 @@ protocol FirebaseService {
     func save(meal: Meal, for date: Date) async throws
     func updateDayStats(for date: Date, adding meal: Meal) async throws
     func fetchMeals(for date: Date) async throws -> [Meal]
+    func uploadFoodPhoto(image: UIImage, mealId: String) async throws -> URL
 }
 
 // MARK: - Implementation
@@ -186,6 +189,37 @@ final class FirebaseServiceImpl: FirebaseService {
         
         print("✅ [FirebaseService] Fetched \(meals.count) meals for \(date)")
         return meals
+    }
+}
+
+    // MARK: - Photo Upload
+    func uploadFoodPhoto(image: UIImage, mealId: String) async throws -> URL {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "FirebaseService", code: 401, userInfo: [NSLocalizedDescriptionKey: "No authenticated user"])
+        }
+        
+        // Compress image
+        guard let imageData = image.jpegData(compressionQuality: 0.7) else {
+            throw NSError(domain: "FirebaseService", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to compress image"])
+        }
+        
+        // Create storage reference
+        let storage = Storage.storage()
+        let storageRef = storage.reference()
+        let photoPath = "users/\(uid)/meals/\(mealId).jpg"
+        let photoRef = storageRef.child(photoPath)
+        
+        // Upload image
+        let metadata = StorageMetadata()
+        metadata.contentType = "image/jpeg"
+        
+        _ = try await photoRef.putDataAsync(imageData, metadata: metadata)
+        
+        // Get download URL
+        let downloadURL = try await photoRef.downloadURL()
+        
+        print("✅ [FirebaseService] Photo uploaded: \(downloadURL.absoluteString)")
+        return downloadURL
     }
 }
 
