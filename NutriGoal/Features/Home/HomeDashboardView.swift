@@ -375,21 +375,21 @@ struct CalAIMealCard: View {
     
 // MARK: - Macro Badge
 struct MacroBadge: View {
-        let icon: String
-        let value: String
-        let color: Color
-        
-        var body: some View {
-            HStack(spacing: 4) {
-                Text(icon)
-                    .font(.caption2)
-                Text(value)
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(color)
-            }
+    let icon: String
+    let value: String
+    let color: Color
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(icon)
+                .font(.caption2)
+            Text(value)
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundColor(color)
         }
     }
+}
     
 // MARK: - Empty Meals View (Dark Style)
 struct EmptyMealsView: View {
