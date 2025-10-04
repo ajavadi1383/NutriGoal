@@ -222,7 +222,7 @@ final class FirebaseServiceImpl: FirebaseService {
         print("✅ [FirebaseService] Photo uploaded: \(downloadURL.absoluteString)")
         return downloadURL
     }
-
+}
 
 // MARK: - Date Formatter Extension
 private extension DateFormatter {
