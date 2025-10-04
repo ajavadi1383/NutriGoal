@@ -278,40 +278,40 @@ struct HomeDashboardView: View {
         }
     }
     
-    // MARK: - Cal AI Style Meal Card
-    struct CalAIMealCard: View {
-        let meal: Meal
-        @State private var loadedImage: UIImage?
-        
-        var body: some View {
-            HStack(spacing: 12) {
-                // Meal photo thumbnail
-                Group {
-                    if let loadedImage = loadedImage {
-                        Image(uiImage: loadedImage)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 80, height: 80)
-                            .clipped()
-                            .cornerRadius(12)
-                    } else {
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.gray.opacity(0.3))
-                            .frame(width: 80, height: 80)
-                            .overlay(
-                                Image(systemName: meal.source == "photo" ? "photo.fill" : "fork.knife")
-                                    .font(.title2)
-                                    .foregroundColor(.gray)
-                            )
+// MARK: - Cal AI Style Meal Card
+struct CalAIMealCard: View {
+    let meal: Meal
+    @State private var loadedImage: UIImage?
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            // Meal photo thumbnail
+            Group {
+                if let loadedImage = loadedImage {
+                    Image(uiImage: loadedImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 80, height: 80)
+                        .clipped()
+                        .cornerRadius(12)
+                } else {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.gray.opacity(0.3))
+                        .frame(width: 80, height: 80)
+                        .overlay(
+                            Image(systemName: meal.source == "photo" ? "photo.fill" : "fork.knife")
+                                .font(.title2)
+                                .foregroundColor(.gray)
+                        )
+                }
+            }
+            .onAppear {
+                if let photoURL = meal.photoURL {
+                    Task {
+                        await loadPhoto(from: photoURL)
                     }
                 }
-                .onAppear {
-                    if let photoURL = meal.photoURL {
-                        Task {
-                            await loadPhoto(from: photoURL)
-                        }
-                    }
-                }
+            }
                 
                 // Meal info
                 VStack(alignment: .leading, spacing: 6) {
@@ -451,7 +451,7 @@ struct AnalyzingFoodCard: View {
             let (data, _) = try await URLSession.shared.data(from: url)
             if let image = UIImage(data: data) {
                 await MainActor.run {
-                    loadedImage = image
+                    self.loadedImage = image
                 }
             }
         } catch {
