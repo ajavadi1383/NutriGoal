@@ -17,6 +17,7 @@ protocol FirebaseService {
 // MARK: - Implementation
 final class FirebaseServiceImpl: FirebaseService {
     
+    
     private let db = Firestore.firestore()
     
     // MARK: - User Profile
@@ -221,7 +222,7 @@ final class FirebaseServiceImpl: FirebaseService {
         print("✅ [FirebaseService] Photo uploaded: \(downloadURL.absoluteString)")
         return downloadURL
     }
-}
+
 
 // MARK: - Date Formatter Extension
 private extension DateFormatter {
