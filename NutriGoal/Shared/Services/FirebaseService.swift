@@ -52,11 +52,15 @@ final class FirebaseServiceImpl: FirebaseService {
             throw NSError(domain: "FirebaseService", code: 401, userInfo: [NSLocalizedDescriptionKey: "No authenticated user"])
         }
         
+        // Ensure unique ID for each meal
+        let mealId = meal.id ?? UUID().uuidString
+        
         let mealData: [String: Any] = [
-            "loggedAt": meal.loggedAt,
+            "id": mealId,  // Save the ID in the document
+            "loggedAt": Timestamp(date: meal.loggedAt),  // Use Firestore Timestamp
             "source": meal.source,
             "name": meal.name,
-            "photoURL": meal.photoURL?.absoluteString as Any,
+            "photoURL": meal.photoURL?.absoluteString ?? NSNull(),
             "calories": meal.calories,
             "proteinG": meal.proteinG,
             "carbsG": meal.carbsG,
@@ -71,10 +75,10 @@ final class FirebaseServiceImpl: FirebaseService {
         ]
         
         try await db.collection("users").document(uid)
-            .collection("meals").document(meal.id ?? UUID().uuidString)
-            .setData(mealData)
+            .collection("meals").document(mealId)  // Use the unique ID
+            .setData(mealData, merge: false)  // Don't merge, create new document
         
-        print("✅ [FirebaseService] Meal saved: \(meal.name)")
+        print("✅ [FirebaseService] Meal saved with ID \(mealId): \(meal.name)")
     }
     
     func updateDayStats(for date: Date, adding meal: Meal) async throws {
@@ -140,14 +144,48 @@ final class FirebaseServiceImpl: FirebaseService {
         
         let snapshot = try await db.collection("users").document(uid)
             .collection("meals")
-            .whereField("loggedAt", isGreaterThanOrEqualTo: startOfDay)
-            .whereField("loggedAt", isLessThan: endOfDay)
+            .whereField("loggedAt", isGreaterThanOrEqualTo: Timestamp(date: startOfDay))
+            .whereField("loggedAt", isLessThan: Timestamp(date: endOfDay))
             .order(by: "loggedAt", descending: true)
             .getDocuments()
         
-        return snapshot.documents.compactMap { document in
-            try? document.data(as: Meal.self)
+        let meals = snapshot.documents.compactMap { document -> Meal? in
+            let data = document.data()
+            
+            // Manual parsing to ensure unique data for each meal
+            guard let id = data["id"] as? String,
+                  let loggedAtTimestamp = data["loggedAt"] as? Timestamp,
+                  let source = data["source"] as? String,
+                  let name = data["name"] as? String,
+                  let calories = data["calories"] as? Int,
+                  let proteinG = data["proteinG"] as? Int,
+                  let carbsG = data["carbsG"] as? Int,
+                  let fatG = data["fatG"] as? Int else {
+                print("⚠️ [FirebaseService] Skipping invalid meal document: \(document.documentID)")
+                return nil
+            }
+            
+            let photoURLString = data["photoURL"] as? String
+            let photoURL = photoURLString.flatMap { URL(string: $0) }
+            
+            print("📝 [FirebaseService] Fetched meal: \(name) (\(id)) - \(calories) cal")
+            
+            return Meal(
+                id: id,
+                loggedAt: loggedAtTimestamp.dateValue(),
+                source: source,
+                name: name,
+                photoURL: photoURL,
+                calories: calories,
+                proteinG: proteinG,
+                carbsG: carbsG,
+                fatG: fatG,
+                smartSwap: nil
+            )
         }
+        
+        print("✅ [FirebaseService] Fetched \(meals.count) meals for \(date)")
+        return meals
     }
 }
 
