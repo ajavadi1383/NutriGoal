@@ -191,8 +191,7 @@ final class FirebaseServiceImpl: FirebaseService {
         print("✅ [FirebaseService] Fetched \(meals.count) meals for \(date)")
         return meals
     }
-}
-
+    
     // MARK: - Photo Upload
     func uploadFoodPhoto(image: UIImage, mealId: String) async throws -> URL {
         guard let uid = Auth.auth().currentUser?.uid else {
