@@ -198,28 +198,46 @@ final class FirebaseServiceImpl: FirebaseService {
             throw NSError(domain: "FirebaseService", code: 401, userInfo: [NSLocalizedDescriptionKey: "No authenticated user"])
         }
         
+        print("📸 [FirebaseService] Starting photo upload for meal: \(mealId)")
+        
         // Compress image
         guard let imageData = image.jpegData(compressionQuality: 0.7) else {
+            print("❌ [FirebaseService] Failed to compress image")
             throw NSError(domain: "FirebaseService", code: 500, userInfo: [NSLocalizedDescriptionKey: "Failed to compress image"])
         }
         
-        // Create storage reference
-        let storage = Storage.storage()
-        let storageRef = storage.reference()
-        let photoPath = "users/\(uid)/meals/\(mealId).jpg"
-        let photoRef = storageRef.child(photoPath)
+        print("✅ [FirebaseService] Image compressed: \(imageData.count) bytes")
         
-        // Upload image
-        let metadata = StorageMetadata()
-        metadata.contentType = "image/jpeg"
-        
-        _ = try await photoRef.putDataAsync(imageData, metadata: metadata)
-        
-        // Get download URL
-        let downloadURL = try await photoRef.downloadURL()
-        
-        print("✅ [FirebaseService] Photo uploaded: \(downloadURL.absoluteString)")
-        return downloadURL
+        do {
+            // Create storage reference with proper bucket URL
+            let storage = Storage.storage()
+            let storageRef = storage.reference()
+            let photoPath = "users/\(uid)/meals/\(mealId).jpg"
+            let photoRef = storageRef.child(photoPath)
+            
+            print("📤 [FirebaseService] Uploading to path: \(photoPath)")
+            
+            // Upload image
+            let metadata = StorageMetadata()
+            metadata.contentType = "image/jpeg"
+            
+            let uploadTask = try await photoRef.putDataAsync(imageData, metadata: metadata)
+            print("✅ [FirebaseService] Upload complete: \(uploadTask)")
+            
+            // Get download URL
+            let downloadURL = try await photoRef.downloadURL()
+            print("✅ [FirebaseService] Photo uploaded successfully: \(downloadURL.absoluteString)")
+            
+            return downloadURL
+            
+        } catch let error as NSError {
+            print("❌ [FirebaseService] Photo upload failed with error: \(error)")
+            print("❌ [FirebaseService] Error domain: \(error.domain), code: \(error.code)")
+            print("❌ [FirebaseService] Error description: \(error.localizedDescription)")
+            
+            // Re-throw the error
+            throw error
+        }
     }
 }
 

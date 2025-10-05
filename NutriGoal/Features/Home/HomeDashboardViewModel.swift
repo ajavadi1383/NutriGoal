@@ -195,15 +195,22 @@ final class HomeDashboardViewModel: ObservableObject {
             // Generate unique meal ID
             let mealId = UUID().uuidString
             
-            // Upload photo to Firebase Storage
+            // Try to upload photo, but don't fail if it doesn't work
+            var photoURL: URL? = nil
             analysisProgress = 0.7
-            print("📸 [HomeDashboardViewModel] Uploading food photo...")
-            let photoURL = try await firebaseService.uploadFoodPhoto(image: image, mealId: mealId)
+            
+            do {
+                print("📸 [HomeDashboardViewModel] Uploading food photo...")
+                photoURL = try await firebaseService.uploadFoodPhoto(image: image, mealId: mealId)
+                print("✅ [HomeDashboardViewModel] Photo uploaded: \(photoURL?.absoluteString ?? "none")")
+            } catch {
+                print("⚠️ [HomeDashboardViewModel] Photo upload failed, continuing without photo: \(error)")
+                // Continue without photo - don't fail the whole operation
+            }
             
             analysisProgress = 0.8
-            print("✅ [HomeDashboardViewModel] Photo uploaded: \(photoURL)")
             
-            // Create meal with photo URL
+            // Create meal with or without photo URL
             let meal = Meal(
                 id: mealId,
                 loggedAt: Date(),
