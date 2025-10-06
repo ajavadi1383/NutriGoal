@@ -18,13 +18,13 @@ final class SettingsViewModel: ObservableObject {
     
     // MARK: - Init
     init(
-        authService: FirebaseAuthService = FirebaseAuthServiceImpl(),
-        firebaseService: FirebaseService = FirebaseServiceImpl(),
-        healthKitService: HealthKitService = HealthKitServiceImpl()
+        authService: FirebaseAuthService? = nil,
+        firebaseService: FirebaseService? = nil,
+        healthKitService: HealthKitService? = nil
     ) {
-        self.authService = authService
-        self.firebaseService = firebaseService
-        self.healthKitService = healthKitService
+        self.authService = authService ?? FirebaseAuthServiceImpl()
+        self.firebaseService = firebaseService ?? FirebaseServiceImpl()
+        self.healthKitService = healthKitService ?? HealthKitServiceImpl()
         loadSettings()
     }
     
