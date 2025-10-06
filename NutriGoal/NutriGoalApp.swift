@@ -173,6 +173,12 @@ struct MainAppView: View {
                     Text("Progress")
                 }
             
+            ReportsView()
+                .tabItem {
+                    Image(systemName: "doc.text.fill")
+                    Text("Reports")
+                }
+            
             SettingsView(router: router)
                 .tabItem {
                     Image(systemName: "gear")
