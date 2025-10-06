@@ -42,7 +42,7 @@ struct SettingsView: View {
                                 title: "Goals & Targets",
                                 subtitle: "Adjust your nutrition goals"
                             ) {
-                                viewModel.goalsT apped()
+                                viewModel.goalsTapped()
                             }
                             
                             SettingsButton(
