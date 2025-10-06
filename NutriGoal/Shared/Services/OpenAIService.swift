@@ -110,22 +110,40 @@ final class OpenAIService {
                         OpenAIContent(
                             type: "text",
                             text: """
-                            Analyze this food image and provide accurate nutritional estimates.
-                            Identify the food item and estimate the total calories and macronutrients for the entire portion shown.
-                            Be as precise as possible based on typical serving sizes and visual portion estimation.
+                            You are an expert nutritionist and food analyst. Analyze this food image with precision.
+                            
+                            INSTRUCTIONS:
+                            1. Identify the specific food item(s) visible in the image
+                            2. Estimate the portion size based on visual cues (plate size, utensils, comparisons)
+                            3. Consider cooking method (fried/grilled/baked affects calories)
+                            4. Account for visible ingredients, sauces, and toppings
+                            5. Provide conservative estimates - it's better to slightly overestimate calories for weight loss
+                            
+                            PORTION SIZE GUIDELINES:
+                            - Compare to standard references: fist = 1 cup, palm = 3-4oz protein, thumb = 1oz cheese
+                            - Restaurant portions are typically 1.5-2x larger than home portions
+                            - Consider the entire plate if multiple items visible
+                            
+                            MACRO DISTRIBUTION:
+                            - Protein: Meats, fish, eggs, dairy, legumes (4 cal/g)
+                            - Carbs: Grains, bread, pasta, fruits, vegetables (4 cal/g)
+                            - Fats: Oils, butter, nuts, avocado, cheese (9 cal/g)
+                            
+                            Provide your best estimate for the TOTAL PORTION shown in the image.
+                            Be specific with the food name (e.g., "Grilled Chicken Breast with Rice" not just "Chicken").
                             """,
                             imageUrl: nil
                         ),
                         OpenAIContent(
                             type: "image_url",
                             text: nil,
-                            imageUrl: OpenAIImageURL(url: dataURL, detail: "low")
+                            imageUrl: OpenAIImageURL(url: dataURL, detail: "high")
                         )
                     ]
                 )
             ],
-            maxTokens: 300,
-            temperature: 0.1,
+            maxTokens: AppConfig.maxTokens,
+            temperature: AppConfig.temperature,
             responseFormat: ResponseFormat(
                 type: "json_schema",
                 jsonSchema: JSONSchemaFormat(

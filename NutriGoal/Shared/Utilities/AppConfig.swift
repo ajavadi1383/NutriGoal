@@ -18,6 +18,6 @@ struct AppConfig {
     
     // MARK: - Model Configuration  
     static let gptVisionModel = "gpt-4o"
-    static let maxTokens = 300
-    static let temperature = 0.1 // Low temperature for consistent nutritional estimates
+    static let maxTokens = 500 // Increased for detailed analysis
+    static let temperature = 0.05 // Very low temperature for maximum consistency and accuracy
 } 
