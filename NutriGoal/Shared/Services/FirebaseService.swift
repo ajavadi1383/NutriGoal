@@ -327,8 +327,10 @@ final class FirebaseServiceImpl: FirebaseService {
     }
 }
 
+}
+
 // MARK: - Date Formatter Extension
-private extension DateFormatter {
+extension DateFormatter {
     static let yyyyMMdd: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
