@@ -63,45 +63,68 @@ final class ProgressViewModel: ObservableObject {
     func loadProgressData() async {
         isLoading = true
         
-        // Generate sample data for now
-        // TODO: Replace with real Firestore queries
-        await generateSampleData()
-        
-        isLoading = false
-    }
-    
-    // MARK: - Sample Data Generation
-    private func generateSampleData() async {
         let days = selectedPeriod.days
         let calendar = Calendar.current
-        
-        // Weight data (gradual decrease for weight loss)
-        weightData = (0..<days).compactMap { dayOffset in
-            guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: Date()) else { return nil }
-            let baseWeight = 75.0
-            let trend = Double(dayOffset) * 0.08 // Slight weight loss trend
-            return WeightDataPoint(date: date, weight: baseWeight + trend + Double.random(in: -0.3...0.3))
-        }.reversed()
-        
-        // Calorie data
-        calorieData = (0..<min(days, 14)).compactMap { dayOffset in
-            guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: Date()) else { return nil }
-            return CalorieDataPoint(date: date, calories: Int.random(in: 1800...2300))
-        }.reversed()
-        
-        // Calculate averages
-        if !calorieData.isEmpty {
-            avgCalories = calorieData.map(\.calories).reduce(0, +) / calorieData.count
+        let endDate = Date()
+        guard let startDate = calendar.date(byAdding: .day, value: -days, to: endDate) else {
+            isLoading = false
+            return
         }
         
-        avgProtein = 120
-        avgCarbs = 200
-        avgFat = 60
-        avgSteps = 8500
-        avgSleep = 7.2
-        avgWorkout = 45
+        do {
+            // Fetch real weight logs
+            let weightLogs = try await firebaseService.fetchWeightLogs(from: startDate, to: endDate)
+            weightData = weightLogs.map { WeightDataPoint(date: $0.loggedAt, weight: $0.weightKg) }
+            print("✅ [ProgressViewModel] Loaded \(weightData.count) weight logs from Firestore")
+            
+            // Fetch real dayStats for calorie data
+            let dayStats = try await firebaseService.fetchDayStatsRange(from: startDate, to: endDate)
+            calorieData = dayStats.compactMap { stat in
+                guard let date = DateFormatter.yyyyMMdd.date(from: stat.date) else { return nil }
+                return CalorieDataPoint(date: date, calories: stat.caloriesTotal)
+            }
+            print("✅ [ProgressViewModel] Loaded \(calorieData.count) day stats from Firestore")
+            
+            // Calculate real averages from dayStats
+            if !dayStats.isEmpty {
+                avgCalories = dayStats.map(\.caloriesTotal).reduce(0, +) / dayStats.count
+                avgProtein = dayStats.map(\.proteinTotal).reduce(0, +) / dayStats.count
+                avgCarbs = dayStats.map(\.carbsTotal).reduce(0, +) / dayStats.count
+                avgFat = dayStats.map(\.fatTotal).reduce(0, +) / dayStats.count
+                avgSteps = dayStats.map(\.steps).reduce(0, +) / dayStats.count
+                avgWorkout = dayStats.map(\.workoutMin).reduce(0, +) / dayStats.count
+                avgSleep = Double(dayStats.map(\.sleepMin).reduce(0, +)) / Double(dayStats.count) / 60.0
+            }
+            
+            // Get calorie target from onboarding data
+            if let onboardingData = UserDefaults.standard.object(forKey: "onboardingData") as? [String: Any],
+               let birthDate = onboardingData["birthDate"] as? Date,
+               let sex = onboardingData["sex"] as? String,
+               let heightCm = onboardingData["heightCm"] as? Int,
+               let weightKg = onboardingData["weightKg"] as? Double,
+               let activityLevel = onboardingData["activityLevel"] as? String,
+               let target = onboardingData["target"] as? String,
+               let weeklyPaceKg = onboardingData["weeklyPaceKg"] as? Double {
+                
+                let goals = NutritionCalculator.calculateDailyGoals(
+                    birthDate: birthDate,
+                    sex: sex,
+                    heightCm: heightCm,
+                    weightKg: weightKg,
+                    activityLevel: activityLevel,
+                    target: target,
+                    weeklyPaceKg: weeklyPaceKg
+                )
+                calorieTarget = goals.calories
+            }
+            
+            print("📊 [ProgressViewModel] Averages: \(avgCalories) cal, \(avgProtein)g protein, \(avgSteps) steps")
+            
+        } catch {
+            print("❌ [ProgressViewModel] Failed to load progress data: \(error)")
+        }
         
-        print("✅ [ProgressViewModel] Loaded \(weightData.count) weight points, \(calorieData.count) calorie points")
+        isLoading = false
     }
 }
 

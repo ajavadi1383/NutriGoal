@@ -12,6 +12,10 @@ protocol FirebaseService {
     func updateDayStats(for date: Date, adding meal: Meal) async throws
     func fetchMeals(for date: Date) async throws -> [Meal]
     func uploadFoodPhoto(image: UIImage, mealId: String) async throws -> URL
+    func fetchDayStats(for date: Date) async throws -> DayStats?
+    func fetchDayStatsRange(from startDate: Date, to endDate: Date) async throws -> [DayStats]
+    func saveWeightLog(weightKg: Double) async throws
+    func fetchWeightLogs(from startDate: Date, to endDate: Date) async throws -> [WeightLog]
 }
 
 // MARK: - Implementation
