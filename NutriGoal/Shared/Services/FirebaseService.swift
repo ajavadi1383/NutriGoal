@@ -243,6 +243,88 @@ final class FirebaseServiceImpl: FirebaseService {
             throw error
         }
     }
+    
+    // MARK: - Day Stats
+    func fetchDayStats(for date: Date) async throws -> DayStats? {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "FirebaseService", code: 401)
+        }
+        
+        let dateString = DateFormatter.yyyyMMdd.string(from: date)
+        let document = try await db.collection("users").document(uid)
+            .collection("dayStats").document(dateString)
+            .getDocument()
+        
+        guard document.exists else { return nil }
+        return try? document.data(as: DayStats.self)
+    }
+    
+    func fetchDayStatsRange(from startDate: Date, to endDate: Date) async throws -> [DayStats] {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "FirebaseService", code: 401)
+        }
+        
+        let startString = DateFormatter.yyyyMMdd.string(from: startDate)
+        let endString = DateFormatter.yyyyMMdd.string(from: endDate)
+        
+        let snapshot = try await db.collection("users").document(uid)
+            .collection("dayStats")
+            .whereField("date", isGreaterThanOrEqualTo: startString)
+            .whereField("date", isLessThanOrEqualTo: endString)
+            .order(by: "date")
+            .getDocuments()
+        
+        return snapshot.documents.compactMap { try? $0.data(as: DayStats.self) }
+    }
+    
+    // MARK: - Weight Logs
+    func saveWeightLog(weightKg: Double) async throws {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "FirebaseService", code: 401)
+        }
+        
+        let weightLog = WeightLog(
+            id: UUID().uuidString,
+            loggedAt: Date(),
+            weightKg: weightKg
+        )
+        
+        try await db.collection("users").document(uid)
+            .collection("weightLogs").document(weightLog.id ?? UUID().uuidString)
+            .setData([
+                "loggedAt": Timestamp(date: weightLog.loggedAt),
+                "weightKg": weightLog.weightKg
+            ])
+        
+        print("✅ [FirebaseService] Weight logged: \(weightKg) kg")
+    }
+    
+    func fetchWeightLogs(from startDate: Date, to endDate: Date) async throws -> [WeightLog] {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "FirebaseService", code: 401)
+        }
+        
+        let snapshot = try await db.collection("users").document(uid)
+            .collection("weightLogs")
+            .whereField("loggedAt", isGreaterThanOrEqualTo: Timestamp(date: startDate))
+            .whereField("loggedAt", isLessThanOrEqualTo: Timestamp(date: endDate))
+            .order(by: "loggedAt")
+            .getDocuments()
+        
+        return snapshot.documents.compactMap { document -> WeightLog? in
+            guard let id = document.documentID as String?,
+                  let loggedAtTimestamp = document.data()["loggedAt"] as? Timestamp,
+                  let weightKg = document.data()["weightKg"] as? Double else {
+                return nil
+            }
+            
+            return WeightLog(
+                id: id,
+                loggedAt: loggedAtTimestamp.dateValue(),
+                weightKg: weightKg
+            )
+        }
+    }
 }
 
 // MARK: - Date Formatter Extension
