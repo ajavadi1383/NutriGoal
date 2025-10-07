@@ -123,7 +123,7 @@ final class ReportsViewModel: ObservableObject {
     // MARK: - AI Report Generation
     private func generateAIReport(dayStats: [DayStats], avgCalories: Int, avgProtein: Int, avgSteps: Int) async throws -> String {
         // Create summary of the week's data
-        let dataSum mary = """
+        let dataSummary = """
         This week summary:
         - \(dayStats.count) days tracked
         - Average daily calories: \(avgCalories) kcal
