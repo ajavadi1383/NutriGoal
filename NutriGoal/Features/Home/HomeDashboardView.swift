@@ -166,12 +166,13 @@ struct HomeDashboardView: View {
                     await viewModel.loadHealthData()
                 }
             }
-            .onChange(of: selectedDate) { _ in
-                Task {
-                    await viewModel.loadMeals()
-                    await viewModel.loadHealthData()
-                }
+        .onChange(of: selectedDate) { newDate in
+            viewModel.selectedDate = newDate
+            Task {
+                await viewModel.loadMeals()
+                await viewModel.loadHealthData()
             }
+        }
         }
     }
     

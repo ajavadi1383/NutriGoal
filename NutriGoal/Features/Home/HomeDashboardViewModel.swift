@@ -73,7 +73,7 @@ final class HomeDashboardViewModel: ObservableObject {
         
         do {
             meals = try await firebaseService.fetchMeals(for: selectedDate)
-            print("✅ [HomeDashboardViewModel] Loaded \(meals.count) meals for today")
+            print("✅ [HomeDashboardViewModel] Loaded \(meals.count) meals for \(selectedDate.formatted(date: .abbreviated, time: .omitted))")
             await updateNutritionStats()
         } catch {
             print("❌ [HomeDashboardViewModel] Failed to load meals: \(error)")
@@ -99,7 +99,7 @@ final class HomeDashboardViewModel: ObservableObject {
             sleepHours = try await healthKitService.getSleepHours(for: selectedDate)
             workoutMinutes = try await healthKitService.getWorkoutMinutes(for: selectedDate)
             
-            print("✅ [HomeDashboardViewModel] Health data loaded: \(steps) steps, \(caloriesBurned) cal burned")
+            print("✅ [HomeDashboardViewModel] Health data loaded for \(selectedDate.formatted(date: .abbreviated, time: .omitted)): \(steps) steps, \(caloriesBurned) cal burned")
             
         } catch {
             print("❌ [HomeDashboardViewModel] Failed to load health data: \(error)")
@@ -114,7 +114,7 @@ final class HomeDashboardViewModel: ObservableObject {
         carbsConsumed = meals.reduce(0) { $0 + $1.carbsG }
         fatConsumed = meals.reduce(0) { $0 + $1.fatG }
         
-        print("📊 [HomeDashboardViewModel] Nutrition stats: \(caloriesConsumed) cal, \(proteinConsumed)g protein, \(carbsConsumed)g carbs, \(fatConsumed)g fat")
+        print("📊 [HomeDashboardViewModel] Nutrition stats for \(selectedDate.formatted(date: .abbreviated, time: .omitted)): \(caloriesConsumed) cal from \(meals.count) meals")
     }
     
     private func resetNutritionStats() {
