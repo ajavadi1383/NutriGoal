@@ -50,16 +50,25 @@ struct ContentView: View {
     
     private func setupInitialRoute() {
         let isOnboarded = UserDefaults.standard.bool(forKey: "onboarded")
+        let currentUser = Auth.auth().currentUser
+        
         print("🚀 [NutriGoalApp] App starting...")
-        print("📱 [NutriGoalApp] Onboarded status: \(isOnboarded)")
+        print("📱 [NutriGoalApp] Onboarded: \(isOnboarded), User: \(currentUser?.email ?? "none")")
         
-        // FOR TESTING: Reset onboarding to always start fresh
-        UserDefaults.standard.set(false, forKey: "onboarded")
-        print("🔄 [NutriGoalApp] Reset onboarding for testing")
-        
-        // Always start with Hero for now
-        router.to(.hero)
-        print("✅ [NutriGoalApp] Starting with Hero screen")
+        // Smart routing based on state
+        if let user = currentUser, isOnboarded {
+            // Returning user - go directly to main app
+            print("✅ [NutriGoalApp] Returning user detected → Main App")
+            router.to(.mainApp)
+        } else if isOnboarded && currentUser == nil {
+            // Onboarded but not signed in - go to auth
+            print("📱 [NutriGoalApp] Onboarded but not signed in → Auth")
+            router.to(.auth)
+        } else {
+            // New user - start with hero
+            print("🆕 [NutriGoalApp] New user → Hero")
+            router.to(.hero)
+        }
     }
 }
 

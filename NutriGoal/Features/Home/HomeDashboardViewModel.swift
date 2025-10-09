@@ -133,7 +133,34 @@ final class HomeDashboardViewModel: ObservableObject {
     
     // MARK: - Load User Goals
     func loadUserGoals() async {
-        // Get user goals from stored onboarding data
+        // First try to get from Firestore user profile
+        do {
+            if let profile = try await firebaseService.fetchUserProfile() {
+                print("✅ [HomeDashboardViewModel] Loading goals from Firestore profile")
+                
+                let goals = NutritionCalculator.calculateDailyGoals(
+                    birthDate: profile.birthDate,
+                    sex: profile.sex,
+                    heightCm: profile.heightCm,
+                    weightKg: profile.weightKg,
+                    activityLevel: profile.activityLevel,
+                    target: profile.target,
+                    weeklyPaceKg: profile.weeklyPaceKg
+                )
+                
+                caloriesTarget = goals.calories
+                proteinTarget = goals.protein
+                carbsTarget = goals.carbs
+                fatTarget = goals.fat
+                
+                print("✅ [HomeDashboardViewModel] Loaded goals from Firestore: \(goals.calories) cal, \(goals.protein)g protein, \(goals.carbs)g carbs, \(goals.fat)g fat")
+                return
+            }
+        } catch {
+            print("⚠️ [HomeDashboardViewModel] Failed to fetch profile from Firestore: \(error)")
+        }
+        
+        // Fallback to UserDefaults onboarding data
         guard let onboardingData = UserDefaults.standard.object(forKey: "onboardingData") as? [String: Any],
               let birthDate = onboardingData["birthDate"] as? Date,
               let sex = onboardingData["sex"] as? String,
@@ -145,6 +172,8 @@ final class HomeDashboardViewModel: ObservableObject {
             print("⚠️ [HomeDashboardViewModel] No onboarding data found, using defaults")
             return
         }
+        
+        print("✅ [HomeDashboardViewModel] Loading goals from UserDefaults")
         
         // Calculate personalized goals
         let goals = NutritionCalculator.calculateDailyGoals(
@@ -162,7 +191,7 @@ final class HomeDashboardViewModel: ObservableObject {
         carbsTarget = goals.carbs
         fatTarget = goals.fat
         
-        print("✅ [HomeDashboardViewModel] Loaded personalized goals: \(goals.calories) cal, \(goals.protein)g protein")
+        print("✅ [HomeDashboardViewModel] Calculated goals: \(goals.calories) cal, \(goals.protein)g protein, \(goals.carbs)g carbs, \(goals.fat)g fat")
     }
     
     // MARK: - Photo Processing (Cal AI Style)

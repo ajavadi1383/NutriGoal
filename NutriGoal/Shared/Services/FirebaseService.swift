@@ -16,6 +16,7 @@ protocol FirebaseService {
     func fetchDayStatsRange(from startDate: Date, to endDate: Date) async throws -> [DayStats]
     func saveWeightLog(weightKg: Double) async throws
     func fetchWeightLogs(from startDate: Date, to endDate: Date) async throws -> [WeightLog]
+    func fetchUserProfile() async throws -> UserProfile?
 }
 
 // MARK: - Implementation
