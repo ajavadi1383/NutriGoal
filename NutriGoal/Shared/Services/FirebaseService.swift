@@ -326,6 +326,22 @@ final class FirebaseServiceImpl: FirebaseService {
             )
         }
     }
+    
+    // MARK: - User Profile
+    func fetchUserProfile() async throws -> UserProfile? {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "FirebaseService", code: 401)
+        }
+        
+        let document = try await db.collection("users").document(uid).getDocument()
+        
+        guard document.exists else {
+            print("⚠️ [FirebaseService] No user profile found for UID: \(uid)")
+            return nil
+        }
+        
+        return try? document.data(as: UserProfile.self)
+    }
 }
 
 // MARK: - Date Formatter Extension
