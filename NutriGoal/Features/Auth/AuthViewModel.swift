@@ -54,7 +54,7 @@ final class AuthViewModel: ObservableObject {
             // Small delay to show success message
             try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
             
-            router.to(.home)
+            router.to(.mainApp)
             
         } catch {
             print("❌ [AuthViewModel] Sign up failed: \(error)")
@@ -83,7 +83,7 @@ final class AuthViewModel: ObservableObject {
             // Small delay to show success message
             try await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
             
-            router.to(.home)
+            router.to(.mainApp)
             
         } catch {
             print("❌ [AuthViewModel] Sign in failed: \(error)")
