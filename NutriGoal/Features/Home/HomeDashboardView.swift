@@ -55,7 +55,11 @@ struct HomeDashboardView: View {
                                         Text("🔥")
                                             .font(.title)
                                         
-                                        Text("\(max(0, viewModel.caloriesTarget - viewModel.caloriesConsumed))")
+                                        let caloriesDifference = viewModel.caloriesConsumed >= viewModel.caloriesTarget
+                                            ? viewModel.caloriesConsumed - viewModel.caloriesTarget
+                                            : viewModel.caloriesTarget - viewModel.caloriesConsumed
+                                        
+                                        Text("\(caloriesDifference)")
                                             .font(.system(size: 32, weight: .bold))
                                             .foregroundColor(.white)
                                     }
