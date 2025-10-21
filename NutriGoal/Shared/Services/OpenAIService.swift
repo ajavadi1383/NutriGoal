@@ -248,35 +248,33 @@ final class OpenAIService {
         
         // Create the prompt for GPT-4
         let prompt = """
-        You are an expert nutritionist and fitness coach. Analyze this week's health and nutrition data and provide a comprehensive, personalized weekly report.
+        You are an expert nutritionist. Analyze this week's data against the user's goals and provide a realistic, honest weekly assessment.
         
         \(weekSummary)\(goalsInfo)
         
-        Your report should include:
+        Write a SHORT (100-150 words), honest report with:
         
-        1. **HIGHLIGHTS** - Celebrate wins and positive patterns (2-3 sentences)
-           - Acknowledge consistency, goal achievements, improvements
-           - Use encouraging language and specific data points
+        1. PERFORMANCE vs GOALS (2-3 sentences)
+           - Compare actual averages to targets
+           - State if they're on track, over, or under
+           - Use specific numbers and percentages
         
-        2. **INSIGHTS** - Identify patterns and trends (2-3 sentences)
-           - Analyze macro balance, calorie trends, activity patterns
-           - Note any correlations between nutrition and activity
-           - Point out areas of strength and areas for improvement
+        2. KEY ISSUE or STRENGTH (1-2 sentences)
+           - Identify the most important pattern (good or bad)
+           - Be direct and realistic - don't sugarcoat
         
-        3. **RECOMMENDATIONS** - Provide 3-4 specific, actionable suggestions
-           - Based on the data, what should they do next week?
-           - Be practical and realistic
-           - Focus on small improvements, not perfection
+        3. ONE ACTIONABLE FIX (1-2 sentences)
+           - The single most important thing to improve next week
+           - Be specific and measurable
         
-        4. **MOTIVATION** - End with an inspiring message (1-2 sentences)
-           - Keep it personal and specific to their journey
-           - Build confidence for the week ahead
+        RULES:
+        - NO cliches ("journey", "crushing it", "you've got this")
+        - NO excessive emojis (1-2 max)
+        - Be respectful but HONEST - if they're off track, say it clearly
+        - Focus on DATA and RESULTS, not motivation
+        - If goals are missing, analyze against healthy standards
         
-        TONE: Friendly, supportive, data-driven but human. Like a knowledgeable coach who genuinely cares.
-        
-        FORMAT: Write in a flowing narrative style with emojis for visual appeal. Use paragraphs, not bullet points. Make it feel like a personal letter from their coach.
-        
-        Keep the total response under 300 words.
+        Keep it under 150 words. Be concise and useful.
         """
         
         // Prepare request
@@ -303,8 +301,8 @@ final class OpenAIService {
             "messages": [
                 ["role": "user", "content": prompt]
             ],
-            "max_tokens": 500,
-            "temperature": 0.7  // More creative for personalized reports
+            "max_tokens": 250,  // Shorter reports
+            "temperature": 0.3  // More factual, less creative
         ]
         
         urlRequest.httpBody = try JSONSerialization.data(withJSONObject: requestBody)

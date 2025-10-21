@@ -44,18 +44,46 @@ final class ReportsViewModel: ObservableObject {
             // Fetch this week's dayStats to see if we have data
             let thisWeekStats = try await firebaseService.fetchDayStatsRange(from: weekStart, to: weekEnd)
             
-            // If we have at least 3 days of data, show option to generate report
-            if thisWeekStats.count >= 3 {
-                // Check if report already exists for this week
-                // For now, we'll regenerate each time
+            // Generate week ID (e.g., "2024-W42")
+            let weekFormatter = DateFormatter()
+            weekFormatter.dateFormat = "'W'ww"
+            let yearFormatter = DateFormatter()
+            yearFormatter.dateFormat = "yyyy"
+            let weekId = "\(yearFormatter.string(from: weekStart))-\(weekFormatter.string(from: weekStart))"
+            
+            // Load past reports from Firestore
+            let fetchedReports = try await firebaseService.fetchWeeklyReports()
+            
+            // Check if report for current week already exists
+            if let existingReport = fetchedReports.first(where: { $0.weekId == weekId }) {
+                let weekDisplayFormatter = DateFormatter()
+                weekDisplayFormatter.dateFormat = "'Week of' MMM d"
+                currentWeekReport = WeeklyReportModel(
+                    week: weekDisplayFormatter.string(from: existingReport.weekStart),
+                    summaryText: existingReport.reportText,
+                    avgScore: existingReport.avgScore,
+                    suggestions: ""
+                )
+            } else if thisWeekStats.count >= 3 {
+                // Can generate new report for this week
                 currentWeekReport = nil
             }
             
-            // TODO: Load past reports from Firestore weeklyReports collection
-            // For now, show empty past reports
-            pastReports = []
+            // Load past reports (excluding current week)
+            pastReports = fetchedReports
+                .filter { $0.weekId != weekId }
+                .map { report in
+                    let weekDisplayFormatter = DateFormatter()
+                    weekDisplayFormatter.dateFormat = "'Week of' MMM d"
+                    return WeeklyReportModel(
+                        week: weekDisplayFormatter.string(from: report.weekStart),
+                        summaryText: report.reportText,
+                        avgScore: report.avgScore,
+                        suggestions: ""
+                    )
+                }
             
-            print("✅ [ReportsViewModel] Loaded reports. This week has \(thisWeekStats.count) days of data")
+            print("✅ [ReportsViewModel] Loaded reports. This week: \(thisWeekStats.count) days. Past reports: \(pastReports.count)")
             
         } catch {
             print("❌ [ReportsViewModel] Failed to load reports: \(error)")
@@ -100,18 +128,33 @@ final class ReportsViewModel: ObservableObject {
                 avgSteps: avgSteps
             )
             
-            let weekFormatter = DateFormatter()
-            weekFormatter.dateFormat = "'Week of' MMM d"
-            let weekString = weekFormatter.string(from: weekStart)
+            let weekDisplayFormatter = DateFormatter()
+            weekDisplayFormatter.dateFormat = "'Week of' MMM d"
+            let weekString = weekDisplayFormatter.string(from: weekStart)
+            
+            // Generate week ID for Firestore (e.g., "2024-W42")
+            let weekIdFormatter = DateFormatter()
+            weekIdFormatter.dateFormat = "'W'ww"
+            let yearFormatter = DateFormatter()
+            yearFormatter.dateFormat = "yyyy"
+            let weekId = "\(yearFormatter.string(from: weekStart))-\(weekIdFormatter.string(from: weekStart))"
             
             currentWeekReport = WeeklyReportModel(
                 week: weekString,
                 summaryText: reportText,
-                avgScore: avgScore > 0 ? avgScore : 7.5, // Use real score or default
-                suggestions: "Keep tracking consistently and stay within your macro targets."
+                avgScore: avgScore > 0 ? avgScore : 7.5,
+                suggestions: ""
             )
             
-            print("✅ [ReportsViewModel] AI report generated for week with \(totalDays) days")
+            // Save report to Firestore
+            try await firebaseService.saveWeeklyReport(
+                weekId: weekId,
+                reportText: reportText,
+                avgScore: avgScore > 0 ? avgScore : 7.5,
+                weekStart: weekStart
+            )
+            
+            print("✅ [ReportsViewModel] AI report generated and saved to Firestore: \(weekId)")
             
         } catch {
             print("❌ [ReportsViewModel] Failed to generate report: \(error)")

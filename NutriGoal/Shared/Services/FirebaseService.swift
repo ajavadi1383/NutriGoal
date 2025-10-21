@@ -17,6 +17,8 @@ protocol FirebaseService {
     func saveWeightLog(weightKg: Double) async throws
     func fetchWeightLogs(from startDate: Date, to endDate: Date) async throws -> [WeightLog]
     func fetchUserProfile() async throws -> UserProfile?
+    func saveWeeklyReport(weekId: String, reportText: String, avgScore: Double, weekStart: Date) async throws
+    func fetchWeeklyReports() async throws -> [(weekId: String, reportText: String, avgScore: Double, weekStart: Date)]
 }
 
 // MARK: - Implementation
@@ -341,6 +343,55 @@ final class FirebaseServiceImpl: FirebaseService {
         }
         
         return try? document.data(as: UserProfile.self)
+    }
+    
+    // MARK: - Weekly Reports
+    func saveWeeklyReport(weekId: String, reportText: String, avgScore: Double, weekStart: Date) async throws {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "FirebaseService", code: 401, userInfo: [NSLocalizedDescriptionKey: "No authenticated user"])
+        }
+        
+        let reportData: [String: Any] = [
+            "weekId": weekId,
+            "reportText": reportText,
+            "avgScore": avgScore,
+            "weekStart": Timestamp(date: weekStart),
+            "generatedAt": Timestamp(date: Date())
+        ]
+        
+        try await db.collection("users").document(uid)
+            .collection("weeklyReports").document(weekId)
+            .setData(reportData)
+        
+        print("✅ [FirebaseService] Weekly report saved: \(weekId)")
+    }
+    
+    func fetchWeeklyReports() async throws -> [(weekId: String, reportText: String, avgScore: Double, weekStart: Date)] {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            throw NSError(domain: "FirebaseService", code: 401, userInfo: [NSLocalizedDescriptionKey: "No authenticated user"])
+        }
+        
+        let snapshot = try await db.collection("users").document(uid)
+            .collection("weeklyReports")
+            .order(by: "weekStart", descending: true)
+            .limit(to: 10)  // Last 10 weeks
+            .getDocuments()
+        
+        let reports = snapshot.documents.compactMap { document -> (String, String, Double, Date)? in
+            let data = document.data()
+            
+            guard let weekId = data["weekId"] as? String,
+                  let reportText = data["reportText"] as? String,
+                  let avgScore = data["avgScore"] as? Double,
+                  let weekStartTimestamp = data["weekStart"] as? Timestamp else {
+                return nil
+            }
+            
+            return (weekId, reportText, avgScore, weekStartTimestamp.dateValue())
+        }
+        
+        print("✅ [FirebaseService] Fetched \(reports.count) weekly reports")
+        return reports
     }
 }
 
