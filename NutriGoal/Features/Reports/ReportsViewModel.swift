@@ -122,27 +122,40 @@ final class ReportsViewModel: ObservableObject {
     
     // MARK: - AI Report Generation
     private func generateAIReport(dayStats: [DayStats], avgCalories: Int, avgProtein: Int, avgSteps: Int) async throws -> String {
-        // Create summary of the week's data
-        let dataSummary = """
-        This week summary:
-        - \(dayStats.count) days tracked
-        - Average daily calories: \(avgCalories) kcal
-        - Average daily protein: \(avgProtein)g
-        - Average daily steps: \(avgSteps)
         
-        Daily breakdown:
-        \(dayStats.map { "• \($0.date): \($0.caloriesTotal) cal, \($0.proteinTotal)g protein, \($0.steps) steps" }.joined(separator: "\n"))
-        """
+        // Fetch user goals from Firestore or UserDefaults
+        var userGoals: (calories: Int, protein: Int, carbs: Int, fat: Int)? = nil
         
-        // For now, generate a simple summary
-        // TODO: Use OpenAI to generate personalized insights
-        let summary = """
-        This week you tracked \(dayStats.count) days with an average of \(avgCalories) calories per day. \
-        Your protein intake averaged \(avgProtein)g daily, and you maintained \(avgSteps) steps on average. \
-        \(dayStats.count >= 5 ? "Great consistency!" : "Try to track more consistently next week.")
-        """
+        do {
+            if let profile = try await firebaseService.fetchUserProfile() {
+                let goals = NutritionCalculator.calculateDailyGoals(
+                    birthDate: profile.birthDate,
+                    sex: profile.sex,
+                    heightCm: profile.heightCm,
+                    weightKg: profile.weightKg,
+                    activityLevel: profile.activityLevel,
+                    target: profile.target,
+                    weeklyPaceKg: profile.weeklyPaceKg
+                )
+                userGoals = (calories: goals.calories, protein: goals.protein, carbs: goals.carbs, fat: goals.fat)
+                print("✅ [ReportsViewModel] Loaded user goals for AI report: \(goals.calories) cal")
+            }
+        } catch {
+            print("⚠️ [ReportsViewModel] Could not load user goals, generating report without goals")
+        }
         
-        return summary
+        // Use OpenAI to generate personalized, creative weekly report
+        print("🤖 [ReportsViewModel] Calling OpenAI to generate weekly report...")
+        
+        let aiReport = try await openAIService.generateWeeklyReport(
+            dayStats: dayStats,
+            avgCalories: avgCalories,
+            avgProtein: avgProtein,
+            avgSteps: avgSteps,
+            userGoals: userGoals
+        )
+        
+        return aiReport
     }
 }
 

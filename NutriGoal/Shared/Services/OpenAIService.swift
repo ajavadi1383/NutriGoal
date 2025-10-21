@@ -220,6 +220,124 @@ final class OpenAIService {
             fat: nutrition.fat
         )
     }
+    
+    // MARK: - Weekly Report Generation
+    func generateWeeklyReport(
+        dayStats: [DayStats],
+        avgCalories: Int,
+        avgProtein: Int,
+        avgSteps: Int,
+        userGoals: (calories: Int, protein: Int, carbs: Int, fat: Int)?
+    ) async throws -> String {
+        
+        // Prepare weekly data summary
+        let weekSummary = """
+        Week Overview:
+        - Days tracked: \(dayStats.count) out of 7
+        - Average daily calories: \(avgCalories) kcal
+        - Average daily protein: \(avgProtein)g
+        - Average daily steps: \(avgSteps)
+        
+        Daily Breakdown:
+        \(dayStats.map { "• \($0.date): \($0.caloriesTotal) cal, \($0.proteinTotal)g protein, \($0.carbsTotal)g carbs, \($0.fatTotal)g fat, \($0.steps) steps, Score: \($0.score)/10" }.joined(separator: "\n"))
+        """
+        
+        let goalsInfo = userGoals.map { goals in
+            "\nUser's Goals: \(goals.calories) cal, \(goals.protein)g protein, \(goals.carbs)g carbs, \(goals.fat)g fat per day"
+        } ?? ""
+        
+        // Create the prompt for GPT-4
+        let prompt = """
+        You are an expert nutritionist and fitness coach. Analyze this week's health and nutrition data and provide a comprehensive, personalized weekly report.
+        
+        \(weekSummary)\(goalsInfo)
+        
+        Your report should include:
+        
+        1. **HIGHLIGHTS** - Celebrate wins and positive patterns (2-3 sentences)
+           - Acknowledge consistency, goal achievements, improvements
+           - Use encouraging language and specific data points
+        
+        2. **INSIGHTS** - Identify patterns and trends (2-3 sentences)
+           - Analyze macro balance, calorie trends, activity patterns
+           - Note any correlations between nutrition and activity
+           - Point out areas of strength and areas for improvement
+        
+        3. **RECOMMENDATIONS** - Provide 3-4 specific, actionable suggestions
+           - Based on the data, what should they do next week?
+           - Be practical and realistic
+           - Focus on small improvements, not perfection
+        
+        4. **MOTIVATION** - End with an inspiring message (1-2 sentences)
+           - Keep it personal and specific to their journey
+           - Build confidence for the week ahead
+        
+        TONE: Friendly, supportive, data-driven but human. Like a knowledgeable coach who genuinely cares.
+        
+        FORMAT: Write in a flowing narrative style with emojis for visual appeal. Use paragraphs, not bullet points. Make it feel like a personal letter from their coach.
+        
+        Keep the total response under 300 words.
+        """
+        
+        // Prepare request
+        let messages = [
+            OpenAIMessage(
+                role: "user",
+                content: [
+                    OpenAIContent(
+                        type: "text",
+                        text: prompt,
+                        imageUrl: nil
+                    )
+                ]
+            )
+        ]
+        
+        var urlRequest = URLRequest(url: URL(string: AppConfig.chatCompletionsEndpoint)!)
+        urlRequest.httpMethod = "POST"
+        urlRequest.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        urlRequest.setValue("Bearer \(AppConfig.openAIAPIKey)", forHTTPHeaderField: "Authorization")
+        
+        let requestBody: [String: Any] = [
+            "model": "gpt-4o-mini",  // Cost-effective for text generation
+            "messages": [
+                ["role": "user", "content": prompt]
+            ],
+            "max_tokens": 500,
+            "temperature": 0.7  // More creative for personalized reports
+        ]
+        
+        urlRequest.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+        
+        print("📊 [OpenAIService] Generating AI weekly report...")
+        
+        // Make request
+        let (data, response) = try await session.data(for: urlRequest)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw OpenAIError.invalidResponse
+        }
+        
+        guard httpResponse.statusCode == 200 else {
+            print("❌ [OpenAIService] HTTP Error: \(httpResponse.statusCode)")
+            if let errorString = String(data: data, encoding: .utf8) {
+                print("❌ [OpenAIService] Error response: \(errorString)")
+            }
+            throw OpenAIError.apiError(httpResponse.statusCode)
+        }
+        
+        // Parse response
+        let openAIResponse = try JSONDecoder().decode(OpenAIResponse.self, from: data)
+        
+        guard let choice = openAIResponse.choices.first else {
+            throw OpenAIError.noResponse
+        }
+        
+        let reportText = choice.message.content.trimmingCharacters(in: .whitespacesAndNewlines)
+        print("✅ [OpenAIService] AI weekly report generated (\(reportText.count) chars)")
+        
+        return reportText
+    }
 }
 
 // MARK: - Errors
